@@ -1,0 +1,236 @@
+{
+  "users": [
+    {
+      "id": "1777538811496",
+      "username": "test1",
+      "email": "ok",
+      "password": "zxcvbnm",
+      "avatar": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkz\nODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2Nj\nY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCABUAJYDASIA\nAhEBAxEB/8QAGwABAQACAwEAAAAAAAAAAAAAAAYFBwECAwT/xAA3EAACAQICCAQCCAcAAAAAAAAA\nAQIDEQQSBRMWIVRhk+EGMUFRcbIUIjV0gpGj0iMmNoGiwdH/xAAWAQEBAQAAAAAAAAAAAAAAAAAA\nAgH/xAAXEQEBAQEAAAAAAAAAAAAAAAAAESEB/9oADAMBAAIRAxEAPwCaqVNZRo0slOKpJpOMEpSu\n73k/N+3JI4p4StVUXTo1JqTypxi3d7lb/KP5r3Mzi8DgdGVq+AxGn9TL6utpKhUafqr23PzufPCG\niacZxp+IsimsslHDVVmXs/cpM6x08LVp01UnSqRg2kpSi0ndJrf8Gn8GeeRczKZNEOm6b8QLI2nb\n6LU80rL0Mxh/BbxOHp16OkYypVYqcJapq6aunvYJ1J5FzGRcyw2Eq8fHpdxsJV4+PS7jCdR+Rcxk\nXMsNhKvHx6XcbCVePj0u4wnUfkXMZFzLDYSrx8el3GwlXj49LuMJ1H5FzGRcyw2Eq8fHpdxsJV4+\nPS7jCdR+RcxkXMsNhKvHx6XcbCVePj0u4wnUfkXMZFzLDYSrx8el3GwlXj49LuMJ1Iw/h1IzjZuL\nTWZJr+6e5nvSxWrlWlKhQqOrGcXnpq0c3rFKyTXp7FVDwVioUqlKGk8tOpbPBQaUreV1ffY6bCVe\nPj0u4w1JOTcHG0bNqT+qr+vrbd5+Xw9kCul4GrSd5aQi3ZLfTf8A0DCdYDxmv5pxv4PkiYSy9jN+\nM/6pxn4PkiYQlRZexuDQX2Do/wC7U/lRp83BoL7C0f8AdqfyoD7wAAAAAAAAAAAAAAAAAAAAEB4m\n8N6Wx+nsTicLhNZRnlyy1kFe0Unubv5oxeyGnX5YH9an+42ZicPDE6rPnWqqKpHK1va/0cLDQdTW\nVIQnK7d3Tje901v5ZY/kvZBuRrTY/T3A/rU/3GyNE0amH0Tg6FaOWpTowhON72aSTPenSpUnJ0qM\nYOVruMUr2Vl+SO6DHIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/2Q==\n"
+    },
+    {
+      "id": "1777539300011",
+      "username": "ko",
+      "email": "ko",
+      "password": "zxcvbnm"
+    },
+    {
+      "id": "1778170014018",
+      "username": "nani",
+      "email": "thoi",
+      "password": "zxcvbnm",
+      "avatar": ""
+    }
+  ],
+  "transactions": [
+    {
+      "amount": 12000,
+      "categoryId": "1",
+      "categoryName": "Ăn uống",
+      "date": "2026-04-30",
+      "description": "ok",
+      "type": "EXPENSE",
+      "id": "1777538911154",
+      "userId": "1777538811496"
+    },
+    {
+      "amount": 13000000,
+      "categoryId": "5",
+      "categoryName": "Tiền lương",
+      "date": "2026-04-30",
+      "description": "io",
+      "type": "INCOME",
+      "id": "1777538933928",
+      "userId": "1777538811496"
+    },
+    {
+      "amount": 890000,
+      "categoryId": "2",
+      "categoryName": "Di chuyển",
+      "date": "2026-04-30",
+      "description": "gt",
+      "type": "EXPENSE",
+      "id": "1777539207239",
+      "userId": "1777538811496"
+    },
+    {
+      "amount": 15090000,
+      "categoryId": "7",
+      "categoryName": "Đầu tư",
+      "date": "2026-04-30",
+      "description": "",
+      "type": "INCOME",
+      "id": "1777539218039",
+      "userId": "1777538811496"
+    },
+    {
+      "amount": 678000,
+      "categoryId": "1",
+      "categoryName": "Ăn uống",
+      "date": "2026-04-30",
+      "description": "",
+      "type": "EXPENSE",
+      "id": "1777539318822",
+      "userId": "1777539300011"
+    },
+    {
+      "amount": 1200000,
+      "categoryId": "4",
+      "categoryName": "Giải trí",
+      "date": "2026-04-30",
+      "description": "",
+      "type": "EXPENSE",
+      "id": "1777539326570",
+      "userId": "1777539300011"
+    },
+    {
+      "amount": 8000000,
+      "categoryId": "5",
+      "categoryName": "Tiền lương",
+      "date": "2026-04-30",
+      "description": "",
+      "type": "INCOME",
+      "id": "1777539336852",
+      "userId": "1777539300011"
+    },
+    {
+      "amount": 1200000,
+      "categoryId": "8",
+      "categoryName": "Khác",
+      "date": "2026-04-30",
+      "description": "",
+      "type": "INCOME",
+      "id": "1777539350375",
+      "userId": "1777539300011"
+    },
+    {
+      "amount": 128908,
+      "categoryId": "1777904402518j4d7k",
+      "categoryName": "Bảo tồn sức khoẻ",
+      "date": "2026-05-04",
+      "description": "oke",
+      "type": "EXPENSE",
+      "id": "1777904458766",
+      "userId": "1777538811496"
+    },
+    {
+      "amount": 1298743,
+      "categoryId": "1778169830047",
+      "categoryName": "Lang thang",
+      "date": "2026-05-07",
+      "description": "nghịch ngu",
+      "type": "EXPENSE",
+      "id": "1778169863134",
+      "userId": "1777538811496"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Đi chơi",
+      "type": "EXPENSE",
+      "id": "1777893589884",
+      "userId": "1777539300011"
+    },
+    {
+      "id": "1777904402518xcdus",
+      "name": "Di chuyển",
+      "type": "EXPENSE",
+      "userId": "1777538811496"
+    },
+    {
+      "id": "17779044025186gsc9",
+      "name": "Mua sắm",
+      "type": "EXPENSE",
+      "userId": "1777538811496"
+    },
+    {
+      "id": "1777904402518ek052",
+      "name": "Giải trí",
+      "type": "EXPENSE",
+      "userId": "1777538811496"
+    },
+    {
+      "id": "1777904402518001bf",
+      "name": "Lương",
+      "type": "INCOME",
+      "userId": "1777538811496"
+    },
+    {
+      "id": "1777904402518p2q7d",
+      "name": "Thưởng",
+      "type": "INCOME",
+      "userId": "1777538811496"
+    },
+    {
+      "id": "1777904402518k54a6",
+      "name": "Đầu tư",
+      "type": "INCOME",
+      "userId": "1777538811496"
+    },
+    {
+      "id": "1777904402518ynmwn",
+      "name": "Khác",
+      "type": "INCOME",
+      "userId": "1777538811496"
+    },
+    {
+      "name": "Lang thang",
+      "type": "EXPENSE",
+      "id": "1778169830047",
+      "userId": "1777538811496"
+    },
+    {
+      "id": "1778170014018wrjs5",
+      "name": "Ăn uống",
+      "type": "EXPENSE",
+      "userId": "1778170014018"
+    },
+    {
+      "id": "1778170014018y39ru",
+      "name": "Di chuyển",
+      "type": "EXPENSE",
+      "userId": "1778170014018"
+    },
+    {
+      "id": "1778170014018qn75m",
+      "name": "Mua sắm",
+      "type": "EXPENSE",
+      "userId": "1778170014018"
+    },
+    {
+      "id": "1778170014018qvjc2",
+      "name": "Giải trí",
+      "type": "EXPENSE",
+      "userId": "1778170014018"
+    },
+    {
+      "id": "1778170014018utjut",
+      "name": "Sức khỏe",
+      "type": "EXPENSE",
+      "userId": "1778170014018"
+    },
+    {
+      "id": "1778170014018lrycb",
+      "name": "Lương",
+      "type": "INCOME",
+      "userId": "1778170014018"
+    },
+    {
+      "id": "1778170014018mcbzw",
+      "name": "Thưởng",
+      "type": "INCOME",
+      "userId": "1778170014018"
+    },
+    {
+      "id": "17781700140189n56h",
+      "name": "Đầu tư",
+      "type": "INCOME",
+      "userId": "1778170014018"
+    },
+    {
+      "id": "1778170014018o6vmo",
+      "name": "Khác",
+      "type": "INCOME",
+      "userId": "1778170014018"
+    }
+  ]
+}
