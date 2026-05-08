@@ -17,20 +17,29 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 const readData = () => {
   try {
     if (!fs.existsSync(DATA_FILE)) {
-      return { users: [], transactions: [], categories: [] };
+      return { users: [], transactions: [], categories: [], wallets: [] };
     }
     const data = JSON.parse(fs.readFileSync(DATA_FILE));
     if (!data.users) data.users = [];
     if (!data.transactions) data.transactions = [];
     if (!data.categories) data.categories = [];
+    if (!data.wallets) data.wallets = [];
     return data;
   } catch (e) {
-    return { users: [], transactions: [], categories: [] };
+    return { users: [], transactions: [], categories: [], wallets: [] };
   }
 };
 
 const saveData = (data) => {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+};
+
+const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
 };
 
 const defaultCategories = [
@@ -61,6 +70,20 @@ const initializeDefaultCategories = (data, userId) => {
   return false;
 };
 
+const initializeDefaultWallets = (data, userId) => {
+  const userWallets = data.wallets.filter(w => w.userId === userId);
+  if (userWallets.length === 0) {
+    data.wallets.push({
+      id: "default_" + userId,
+      name: "Ví chính",
+      balance: 0,
+      userId: userId
+    });
+    return true;
+  }
+  return false;
+};
+
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -76,6 +99,11 @@ const authenticateToken = (req, res, next) => {
 // --- AUTH API ---
 app.post("/api/auth/register", (req, res) => {
   const { username, email, password } = req.body;
+
+  if (!email || !validateEmail(email)) {
+    return res.status(400).json({ message: "Định dạng email không hợp lệ" });
+  }
+
   const data = readData();
   if (data.users.find(u => u.email === email)) return res.status(400).json({ message: "Email đã tồn tại" });
 
@@ -83,8 +111,9 @@ app.post("/api/auth/register", (req, res) => {
   const newUser = { id: userId, username, email, password, avatar: "" };
   data.users.push(newUser);
 
-  // Khởi tạo danh mục mặc định ngay khi đăng ký
+  // Khởi tạo danh mục và ví mặc định ngay khi đăng ký
   initializeDefaultCategories(data, userId);
+  initializeDefaultWallets(data, userId);
 
   saveData(data);
   res.status(200).json({ message: "Đăng ký thành công" });
@@ -92,12 +121,19 @@ app.post("/api/auth/register", (req, res) => {
 
 app.post("/api/auth/login", (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !validateEmail(email)) {
+    return res.status(400).json({ message: "Định dạng email không hợp lệ" });
+  }
+
   const data = readData();
   const user = data.users.find(u => u.email === email && u.password === password);
 
   if (user) {
-    // Kiểm tra và bổ sung danh mục mặc định nếu user cũ chưa có
-    if (initializeDefaultCategories(data, user.id)) {
+    // Kiểm tra và bổ sung danh mục/ví mặc định nếu user cũ chưa có
+    let changed = initializeDefaultCategories(data, user.id);
+    changed = initializeDefaultWallets(data, user.id) || changed;
+    if (changed) {
       saveData(data);
     }
     const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
@@ -122,7 +158,12 @@ app.put("/api/auth/profile", authenticateToken, (req, res) => {
   const data = readData();
   const index = data.users.findIndex(u => u.id === req.user.id);
   if (index !== -1) {
+    if (req.body.email && !validateEmail(req.body.email)) {
+        return res.status(400).json({ message: "Định dạng email mới không hợp lệ" });
+    }
+
     data.users[index].username = req.body.username || data.users[index].username;
+    data.users[index].email = req.body.email || data.users[index].email;
     data.users[index].avatar = req.body.avatar || data.users[index].avatar;
     saveData(data);
     const { password, ...userWithoutPassword } = data.users[index];
@@ -130,6 +171,49 @@ app.put("/api/auth/profile", authenticateToken, (req, res) => {
   } else {
     res.status(404).json({ message: "User không tồn tại" });
   }
+});
+
+// --- WALLETS API ---
+app.get("/api/wallets", authenticateToken, (req, res) => {
+  const data = readData();
+  let userWallets = data.wallets.filter(w => w.userId === req.user.id);
+  if (userWallets.length === 0) {
+    initializeDefaultWallets(data, req.user.id);
+    saveData(data);
+    userWallets = data.wallets.filter(w => w.userId === req.user.id);
+  }
+  res.json(userWallets);
+});
+
+app.post("/api/wallets", authenticateToken, (req, res) => {
+  const data = readData();
+  const newWallet = { ...req.body, id: Date.now().toString(), userId: req.user.id, balance: req.body.balance || 0 };
+  data.wallets.push(newWallet);
+  saveData(data);
+  res.status(201).json(newWallet);
+});
+
+app.put("/api/wallets/:id", authenticateToken, (req, res) => {
+  const data = readData();
+  const index = data.wallets.findIndex(w => w.id === req.params.id && w.userId === req.user.id);
+  if (index !== -1) {
+    data.wallets[index] = { ...data.wallets[index], ...req.body, id: req.params.id, userId: req.user.id };
+    saveData(data);
+    res.json(data.wallets[index]);
+  } else {
+    res.status(404).json({ message: "Không tìm thấy ví" });
+  }
+});
+
+app.delete("/api/wallets/:id", authenticateToken, (req, res) => {
+  let data = readData();
+  const userWallets = data.wallets.filter(w => w.userId === req.user.id);
+  if (userWallets.length <= 1) {
+    return res.status(400).json({ message: "Phải có ít nhất một ví" });
+  }
+  data.wallets = data.wallets.filter(w => !(w.id === req.params.id && w.userId === req.user.id));
+  saveData(data);
+  res.json({ message: "Xóa thành công" });
 });
 
 // --- CATEGORIES API ---
