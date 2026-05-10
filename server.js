@@ -216,6 +216,56 @@ app.delete("/api/wallets/:id", authenticateToken, (req, res) => {
   res.json({ message: "Xóa thành công" });
 });
 
+app.post("/api/wallets/transfer", authenticateToken, (req, res) => {
+  const { fromWalletId, toWalletId, amount, note } = req.body;
+  const data = readData();
+
+  const fromWallet = data.wallets.find(w => w.id === fromWalletId && w.userId === req.user.id);
+  const toWallet = data.wallets.find(w => w.id === toWalletId && w.userId === req.user.id);
+
+  if (!fromWallet || !toWallet) {
+    return res.status(404).json({ message: "Không tìm thấy ví nguồn hoặc ví đích" });
+  }
+
+  const transferAmount = parseFloat(amount);
+  if (isNaN(transferAmount) || transferAmount <= 0) {
+    return res.status(400).json({ message: "Số tiền chuyển không hợp lệ" });
+  }
+
+  const now = new Date().toISOString().split('T')[0];
+  const transferGroupId = Date.now().toString();
+
+  // 1. Tạo giao dịch chi ở ví nguồn
+  const expenseTrans = {
+    id: transferGroupId + "_out",
+    userId: req.user.id,
+    walletId: fromWalletId,
+    amount: transferAmount,
+    type: "EXPENSE",
+    categoryName: "Chuyển tiền",
+    title: note || `Chuyển tiền đến ${toWallet.name}`,
+    date: now
+  };
+
+  // 2. Tạo giao dịch thu ở ví đích
+  const incomeTrans = {
+    id: transferGroupId + "_in",
+    userId: req.user.id,
+    walletId: toWalletId,
+    amount: transferAmount,
+    type: "INCOME",
+    categoryName: "Nhận tiền",
+    title: note || `Nhận tiền từ ${fromWallet.name}`,
+    date: now
+  };
+
+  data.transactions.push(expenseTrans);
+  data.transactions.push(incomeTrans);
+
+  saveData(data);
+  res.status(200).json({ message: "Chuyển tiền thành công" });
+});
+
 // --- CATEGORIES API ---
 app.get("/api/categories", authenticateToken, (req, res) => {
   const data = readData();
