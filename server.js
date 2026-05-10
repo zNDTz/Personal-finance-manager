@@ -243,7 +243,7 @@ app.post("/api/wallets/transfer", authenticateToken, (req, res) => {
     amount: transferAmount,
     type: "EXPENSE",
     categoryName: "Chuyển tiền",
-    title: note || `Chuyển tiền đến ${toWallet.name}`,
+    description: note || `Chuyển tiền đến ${toWallet.name}`,
     date: now
   };
 
@@ -255,7 +255,7 @@ app.post("/api/wallets/transfer", authenticateToken, (req, res) => {
     amount: transferAmount,
     type: "INCOME",
     categoryName: "Nhận tiền",
-    title: note || `Nhận tiền từ ${fromWallet.name}`,
+    description: note || `Nhận tiền từ ${fromWallet.name}`,
     date: now
   };
 
