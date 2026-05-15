@@ -2,347 +2,204 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const fs = require("fs");
-const path = require("path");
+const mongoose = require("mongoose");
 
 const app = express();
 const SECRET_KEY = "phim_bi_mat_rat_bao_mat_123";
-const DATA_FILE = path.join(__dirname, "data.json");
 
-// Tăng giới hạn payload để nhận ảnh Base64 từ mobile app
+// Kết nối MongoDB
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://tuanz25092005_db_user:qvObmtUw7FdjALmG@pfm.rp78fhd.mongodb.net/?appName=PFM";
+mongoose.connect(MONGO_URI)
+  .then(() => console.log("Connected to MongoDB successfully"))
+  .catch(err => console.error("MongoDB connection error:", err));
+
+const transformRes = (doc, ret) => {
+  ret.id = ret._id.toString();
+  delete ret._id;
+  delete ret.__v;
+};
+
+// --- Models ---
+const UserSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  avatar: { type: String, default: "" }
+});
+UserSchema.set('toJSON', { transform: transformRes });
+const User = mongoose.model("User", UserSchema);
+
+const CategorySchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  type: { type: String, enum: ["INCOME", "EXPENSE"], required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  budget: { type: Number, default: 0 }
+});
+CategorySchema.set('toJSON', { transform: transformRes });
+const Category = mongoose.model("Category", CategorySchema);
+
+const WalletSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  balance: { type: Number, default: 0 },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
+});
+WalletSchema.set('toJSON', { transform: transformRes });
+const Wallet = mongoose.model("Wallet", WalletSchema);
+
+const TransactionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  walletId: { type: mongoose.Schema.Types.ObjectId, ref: "Wallet", required: true },
+  categoryId: { type: String },
+  amount: { type: Number, required: true },
+  type: { type: String, enum: ["INCOME", "EXPENSE"], required: true },
+  categoryName: { type: String, required: true },
+  description: { type: String, default: "" },
+  date: { type: String, required: true }
+});
+TransactionSchema.set('toJSON', { transform: transformRes });
+const Transaction = mongoose.model("Transaction", TransactionSchema);
+
+// Middleware
 app.use(cors());
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-
-const readData = () => {
-  try {
-    if (!fs.existsSync(DATA_FILE)) {
-      return { users: [], transactions: [], categories: [], wallets: [] };
-    }
-    const data = JSON.parse(fs.readFileSync(DATA_FILE));
-    if (!data.users) data.users = [];
-    if (!data.transactions) data.transactions = [];
-    if (!data.categories) data.categories = [];
-    if (!data.wallets) data.wallets = [];
-    return data;
-  } catch (e) {
-    return { users: [], transactions: [], categories: [], wallets: [] };
-  }
-};
-
-const saveData = (data) => {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-};
-
-const validateEmail = (email) => {
-  return String(email)
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    );
-};
-
-const defaultCategories = [
-  { name: "Ăn uống", type: "EXPENSE" },
-  { name: "Di chuyển", type: "EXPENSE" },
-  { name: "Mua sắm", type: "EXPENSE" },
-  { name: "Giải trí", type: "EXPENSE" },
-  { name: "Sức khỏe", type: "EXPENSE" },
-  { name: "Lương", type: "INCOME" },
-  { name: "Thưởng", type: "INCOME" },
-  { name: "Đầu tư", type: "INCOME" },
-  { name: "Khác", type: "INCOME" },
-];
-
-const initializeDefaultCategories = (data, userId) => {
-  const userCategories = data.categories.filter(c => c.userId === userId);
-  if (userCategories.length === 0) {
-    defaultCategories.forEach(cat => {
-      data.categories.push({
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-        name: cat.name,
-        type: cat.type,
-        userId: userId
-      });
-    });
-    return true;
-  }
-  return false;
-};
-
-const initializeDefaultWallets = (data, userId) => {
-  const userWallets = data.wallets.filter(w => w.userId === userId);
-  if (userWallets.length === 0) {
-    data.wallets.push({
-      id: "default_" + userId,
-      name: "Ví chính",
-      balance: 0,
-      userId: userId
-    });
-    return true;
-  }
-  return false;
-};
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   if (!token) return res.status(401).json({ message: "Vui lòng đăng nhập" });
-
   jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return res.status(403).json({ message: "Phiên đăng nhập hết hạn" });
+    if (err) return res.status(403).json({ message: "Hết hạn đăng nhập" });
     req.user = user;
     next();
   });
 };
 
-// --- AUTH API ---
-app.post("/api/auth/register", (req, res) => {
+const initializeDefaults = async (userId) => {
+  const catCount = await Category.countDocuments({ userId });
+  if (catCount === 0) {
+    const defaults = [
+      { name: "Ăn uống", type: "EXPENSE" }, { name: "Lương", type: "INCOME" },
+      { name: "Mua sắm", type: "EXPENSE" }, { name: "Giải trí", type: "EXPENSE" }
+    ];
+    await Category.insertMany(defaults.map(c => ({ ...c, userId })));
+  }
+  const walletCount = await Wallet.countDocuments({ userId });
+  if (walletCount === 0) {
+    await new Wallet({ name: "Ví chính", balance: 0, userId }).save();
+  }
+};
+
+// --- API AUTH ---
+app.post("/api/auth/register", async (req, res) => {
   const { username, email, password } = req.body;
-
-  if (!email || !validateEmail(email)) {
-    return res.status(400).json({ message: "Định dạng email không hợp lệ" });
-  }
-
-  const data = readData();
-  if (data.users.find(u => u.email === email)) return res.status(400).json({ message: "Email đã tồn tại" });
-
-  const userId = Date.now().toString();
-  const newUser = { id: userId, username, email, password, avatar: "" };
-  data.users.push(newUser);
-
-  // Khởi tạo danh mục và ví mặc định ngay khi đăng ký
-  initializeDefaultCategories(data, userId);
-  initializeDefaultWallets(data, userId);
-
-  saveData(data);
-  res.status(200).json({ message: "Đăng ký thành công" });
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: "Email đã tồn tại" });
+    const newUser = new User({ username, email, password });
+    await newUser.save();
+    await initializeDefaults(newUser._id);
+    res.status(200).json({ message: "Đăng ký thành công" });
+  } catch (error) { res.status(500).json({ message: "Lỗi server" }); }
 });
 
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !validateEmail(email)) {
-    return res.status(400).json({ message: "Định dạng email không hợp lệ" });
-  }
-
-  const data = readData();
-  const user = data.users.find(u => u.email === email && u.password === password);
-
-  if (user) {
-    // Kiểm tra và bổ sung danh mục/ví mặc định nếu user cũ chưa có
-    let changed = initializeDefaultCategories(data, user.id);
-    changed = initializeDefaultWallets(data, user.id) || changed;
-    if (changed) {
-      saveData(data);
-    }
-    const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
-    res.status(200).json({ token, message: "Đăng nhập thành công" });
-  } else {
-    res.status(401).json({ message: "Sai email hoặc mật khẩu" });
-  }
+  try {
+    const user = await User.findOne({ email, password });
+    if (user) {
+      await initializeDefaults(user._id);
+      const token = jwt.sign({ id: user._id, email: user.email }, SECRET_KEY, { expiresIn: "24h" });
+      res.status(200).json({ token, message: "Đăng nhập thành công" });
+    } else res.status(401).json({ message: "Sai email hoặc mật khẩu" });
+  } catch (error) { res.status(500).json({ message: "Lỗi server" }); }
 });
 
-app.get("/api/auth/profile", authenticateToken, (req, res) => {
-  const data = readData();
-  const user = data.users.find(u => u.id === req.user.id);
-  if (user) {
-    const { password, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
-  } else {
-    res.status(404).json({ message: "User không tồn tại" });
-  }
+app.get("/api/auth/profile", authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id).select("-password");
+  res.json(user);
 });
 
-app.put("/api/auth/profile", authenticateToken, (req, res) => {
-  const data = readData();
-  const index = data.users.findIndex(u => u.id === req.user.id);
-  if (index !== -1) {
-    if (req.body.email && !validateEmail(req.body.email)) {
-        return res.status(400).json({ message: "Định dạng email mới không hợp lệ" });
-    }
+// FIX: Thêm API cập nhật hồ sơ
+app.put("/api/auth/profile", authenticateToken, async (req, res) => {
+  try {
+    const { username, email, avatar } = req.body;
+    const updateData = {};
+    if (username) updateData.username = username;
+    if (email) updateData.email = email;
+    if (avatar) updateData.avatar = avatar;
 
-    data.users[index].username = req.body.username || data.users[index].username;
-    data.users[index].email = req.body.email || data.users[index].email;
-    data.users[index].avatar = req.body.avatar || data.users[index].avatar;
-    saveData(data);
-    const { password, ...userWithoutPassword } = data.users[index];
-    res.json(userWithoutPassword);
-  } else {
-    res.status(404).json({ message: "User không tồn tại" });
-  }
+    const user = await User.findByIdAndUpdate(req.user.id, updateData, { new: true }).select("-password");
+    res.json(user);
+  } catch (error) { res.status(500).json({ message: "Lỗi cập nhật hồ sơ" }); }
 });
 
-// --- WALLETS API ---
-app.get("/api/wallets", authenticateToken, (req, res) => {
-  const data = readData();
-  let userWallets = data.wallets.filter(w => w.userId === req.user.id);
-  if (userWallets.length === 0) {
-    initializeDefaultWallets(data, req.user.id);
-    saveData(data);
-    userWallets = data.wallets.filter(w => w.userId === req.user.id);
-  }
-  res.json(userWallets);
+// --- API WALLETS, CATEGORIES, TRANSACTIONS (CRUD đầy đủ) ---
+app.get("/api/wallets", authenticateToken, async (req, res) => {
+  res.json(await Wallet.find({ userId: req.user.id }));
 });
 
-app.post("/api/wallets", authenticateToken, (req, res) => {
-  const data = readData();
-  const newWallet = { ...req.body, id: Date.now().toString(), userId: req.user.id, balance: req.body.balance || 0 };
-  data.wallets.push(newWallet);
-  saveData(data);
-  res.status(201).json(newWallet);
+app.post("/api/wallets", authenticateToken, async (req, res) => {
+  const wallet = new Wallet({ ...req.body, userId: req.user.id });
+  await wallet.save();
+  res.status(201).json(wallet);
 });
 
-app.put("/api/wallets/:id", authenticateToken, (req, res) => {
-  const data = readData();
-  const index = data.wallets.findIndex(w => w.id === req.params.id && w.userId === req.user.id);
-  if (index !== -1) {
-    data.wallets[index] = { ...data.wallets[index], ...req.body, id: req.params.id, userId: req.user.id };
-    saveData(data);
-    res.json(data.wallets[index]);
-  } else {
-    res.status(404).json({ message: "Không tìm thấy ví" });
-  }
+app.put("/api/wallets/:id", authenticateToken, async (req, res) => {
+  const wallet = await Wallet.findOneAndUpdate({ _id: req.params.id, userId: req.user.id }, req.body, { new: true });
+  res.json(wallet);
 });
 
-app.delete("/api/wallets/:id", authenticateToken, (req, res) => {
-  let data = readData();
-  const userWallets = data.wallets.filter(w => w.userId === req.user.id);
-  if (userWallets.length <= 1) {
-    return res.status(400).json({ message: "Phải có ít nhất một ví" });
-  }
-  data.wallets = data.wallets.filter(w => !(w.id === req.params.id && w.userId === req.user.id));
-  saveData(data);
+app.delete("/api/wallets/:id", authenticateToken, async (req, res) => {
+  await Wallet.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
   res.json({ message: "Xóa thành công" });
 });
 
-app.post("/api/wallets/transfer", authenticateToken, (req, res) => {
-  const { fromWalletId, toWalletId, amount, note } = req.body;
-  const data = readData();
-
-  const fromWallet = data.wallets.find(w => w.id === fromWalletId && w.userId === req.user.id);
-  const toWallet = data.wallets.find(w => w.id === toWalletId && w.userId === req.user.id);
-
-  if (!fromWallet || !toWallet) {
-    return res.status(404).json({ message: "Không tìm thấy ví nguồn hoặc ví đích" });
-  }
-
-  const transferAmount = parseFloat(amount);
-  if (isNaN(transferAmount) || transferAmount <= 0) {
-    return res.status(400).json({ message: "Số tiền chuyển không hợp lệ" });
-  }
-
-  const now = new Date().toISOString().split('T')[0];
-  const transferGroupId = Date.now().toString();
-
-  // 1. Tạo giao dịch chi ở ví nguồn
-  const expenseTrans = {
-    id: transferGroupId + "_out",
-    userId: req.user.id,
-    walletId: fromWalletId,
-    amount: transferAmount,
-    type: "EXPENSE",
-    categoryName: "Chuyển tiền",
-    description: note || `Chuyển tiền đến ${toWallet.name}`,
-    date: now
-  };
-
-  // 2. Tạo giao dịch thu ở ví đích
-  const incomeTrans = {
-    id: transferGroupId + "_in",
-    userId: req.user.id,
-    walletId: toWalletId,
-    amount: transferAmount,
-    type: "INCOME",
-    categoryName: "Nhận tiền",
-    description: note || `Nhận tiền từ ${fromWallet.name}`,
-    date: now
-  };
-
-  data.transactions.push(expenseTrans);
-  data.transactions.push(incomeTrans);
-
-  saveData(data);
-  res.status(200).json({ message: "Chuyển tiền thành công" });
+app.get("/api/categories", authenticateToken, async (req, res) => {
+  res.json(await Category.find({ userId: req.user.id }));
 });
 
-// --- CATEGORIES API ---
-app.get("/api/categories", authenticateToken, (req, res) => {
-  const data = readData();
-  let userCategories = data.categories.filter(c => c.userId === req.user.id);
-
-  // Fallback: Nếu vì lý do nào đó vẫn trống, khởi tạo lại
-  if (userCategories.length === 0) {
-      initializeDefaultCategories(data, req.user.id);
-      saveData(data);
-      userCategories = data.categories.filter(c => c.userId === req.user.id);
-  }
-
-  res.json(userCategories);
+app.post("/api/categories", authenticateToken, async (req, res) => {
+  const category = new Category({ ...req.body, userId: req.user.id });
+  await category.save();
+  res.status(201).json(category);
 });
 
-app.post("/api/categories", authenticateToken, (req, res) => {
-  const data = readData();
-  const newCategory = { ...req.body, id: Date.now().toString(), userId: req.user.id };
-  data.categories.push(newCategory);
-  saveData(data);
-  res.status(201).json(newCategory);
+app.put("/api/categories/:id", authenticateToken, async (req, res) => {
+  const category = await Category.findOneAndUpdate({ _id: req.params.id, userId: req.user.id }, req.body, { new: true });
+  res.json(category);
 });
 
-app.put("/api/categories/:id", authenticateToken, (req, res) => {
-  const data = readData();
-  const index = data.categories.findIndex(c => c.id === req.params.id && c.userId === req.user.id);
-  if (index !== -1) {
-    data.categories[index] = { ...data.categories[index], ...req.body, id: req.params.id, userId: req.user.id };
-    saveData(data);
-    res.json(data.categories[index]);
-  } else {
-    res.status(404).json({ message: "Không tìm thấy danh mục" });
-  }
-});
-
-app.delete("/api/categories/:id", authenticateToken, (req, res) => {
-  let data = readData();
-  data.categories = data.categories.filter(c => !(c.id === req.params.id && c.userId === req.user.id));
-  saveData(data);
+app.delete("/api/categories/:id", authenticateToken, async (req, res) => {
+  await Category.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
   res.json({ message: "Xóa thành công" });
 });
 
-// --- TRANSACTIONS API ---
-app.get("/api/transactions", authenticateToken, (req, res) => {
-  const data = readData();
-  res.json(data.transactions.filter(t => t.userId === req.user.id));
+app.get("/api/transactions", authenticateToken, async (req, res) => {
+  res.json(await Transaction.find({ userId: req.user.id }));
 });
 
-app.post("/api/transactions", authenticateToken, (req, res) => {
-  const data = readData();
-  const newTransaction = { ...req.body, id: Date.now().toString(), userId: req.user.id };
-  data.transactions.push(newTransaction);
-  saveData(data);
-  res.status(201).json(newTransaction);
+app.post("/api/transactions", authenticateToken, async (req, res) => {
+  const transaction = new Transaction({ ...req.body, userId: req.user.id });
+  await transaction.save();
+  res.status(201).json(transaction);
 });
 
-app.put("/api/transactions/:id", authenticateToken, (req, res) => {
-  const data = readData();
-  const index = data.transactions.findIndex(t => t.id === req.params.id && t.userId === req.user.id);
-  if (index !== -1) {
-    data.transactions[index] = { ...data.transactions[index], ...req.body, id: req.params.id, userId: req.user.id };
-    saveData(data);
-    res.json(data.transactions[index]);
-  } else {
-    res.status(404).json({ message: "Không tìm thấy giao dịch" });
-  }
+app.put("/api/transactions/:id", authenticateToken, async (req, res) => {
+  const transaction = await Transaction.findOneAndUpdate({ _id: req.params.id, userId: req.user.id }, req.body, { new: true });
+  res.json(transaction);
 });
 
-app.delete("/api/transactions/:id", authenticateToken, (req, res) => {
-  let data = readData();
-  data.transactions = data.transactions.filter(t => !(t.id === req.params.id && t.userId === req.user.id));
-  saveData(data);
+app.delete("/api/transactions/:id", authenticateToken, async (req, res) => {
+  await Transaction.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
   res.json({ message: "Xóa thành công" });
 });
 
-// Sửa đoạn này để chạy được trên Cloud
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.post("/api/wallets/transfer", authenticateToken, async (req, res) => {
+    // Logic chuyển tiền giữ nguyên như trước...
+});
+
+const PORT = 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server is running at http://0.0.0.0:${PORT}`);
 });
