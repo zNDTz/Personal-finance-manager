@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="accent">#03DAC5</color>
+    <color name="income">#4CAF50</color>
+    <color name="expense">#F44336</color>
+    <color name="gray">#9E9E9E</color>
+
+    <!-- Semantic colors for Theme support -->
+    <color name="backgroundColor">#F5F5F5</color>
+    <color name="surfaceColor">#FFFFFF</color>
+    <color name="onSurfaceColor">#000000</color>
+    <color name="cardBackgroundColor">#FFFFFF</color>
+    <color name="dividerColor">#E0E0E0</color>
+    <color name="textColorPrimary">#212121</color>
+    <color name="textColorSecondary">#757575</color>
+</resources>

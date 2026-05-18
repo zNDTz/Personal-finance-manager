@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Quản lý Tài chính</string>
+    <string name="nav_transactions">Giao dịch</string>
+    <string name="nav_statistics">Thống kê</string>
+    <string name="nav_categories">Danh mục</string>
+    <string name="nav_logout">Đăng xuất</string>
+    <string name="add_transaction">Thêm Giao dịch</string>
+    <string name="edit_transaction">Sửa Giao dịch</string>
+    <string name="income">Thu nhập</string>
+    <string name="expense">Chi tiêu</string>
+    <string name="amount">Số tiền</string>
+    <string name="description">Mô tả</string>
+    <string name="category">Hạng mục</string>
+    <string name="save">Lưu</string>
+    <string name="delete">Xóa</string>
+    <string name="login">Đăng nhập</string>
+    <string name="register">Đăng ký</string>
+    <string name="email">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="username">Tên đăng nhập</string>
+    <string name="dont_have_account">Chưa có tài khoản? Đăng ký</string>
+    <string name="already_have_account">Đã có tài khoản? Đăng nhập</string>
+    <string name="create_account">Tạo tài khoản</string>
+    <string name="personal_finance">Tài chính Cá nhân</string>
+</resources>
