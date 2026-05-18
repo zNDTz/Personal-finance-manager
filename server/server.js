@@ -5,7 +5,6 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 
 const app = express();
-jwt.sign(payload, process.env.SECRET_KEY);
 
 // Kết nối MongoDB
 mongoose
