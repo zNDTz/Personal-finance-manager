@@ -72,7 +72,7 @@ const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   if (!token) return res.status(401).json({ message: "Vui lòng đăng nhập" });
-  jwt.verify(token, SECRET_KEY, (err, user) => {
+  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
     if (err) return res.status(403).json({ message: "Hết hạn đăng nhập" });
     req.user = user;
     next();
@@ -118,9 +118,13 @@ app.post("/api/auth/login", async (req, res) => {
     const user = await User.findOne({ email, password });
     if (user) {
       await initializeDefaults(user._id);
-      const token = jwt.sign({ id: user._id, email: user.email }, SECRET_KEY, {
-        expiresIn: "24h",
-      });
+      const token = jwt.sign(
+        { id: user._id, email: user.email },
+        process.env.SECRET_KEY,
+        {
+          expiresIn: "24h",
+        },
+      );
       res.status(200).json({ token, message: "Đăng nhập thành công" });
     } else res.status(401).json({ message: "Sai email hoặc mật khẩu" });
   } catch (error) {
