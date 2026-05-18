@@ -6,7 +6,7 @@ Dự án phát triển ứng dụng Quản lý tài chính cá nhân dựa trên
 
 - **Trường:** Đại học Công nghiệp Hà Nội (HaUI) - Khoa CNTT
 - **Môn học:** Phát triển ứng dụng trên thiết bị di động
-- **Thực hiện:** Nhóm 5
+- **Thực hiện:** Nhóm 7
 - **Project Manager:** Nguyễn Danh Tuấn
 
 ## 🛠 Công nghệ sử dụng
