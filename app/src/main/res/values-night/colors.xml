@@ -2,19 +2,30 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="primary">#90CAF9</color>
-    <color name="primary_dark">#1976D2</color>
+
+    <!-- Điều chỉnh màu Primary đậm hơn một chút để chữ trắng dễ đọc hơn -->
+    <color name="primary">#3F51B5</color>
+    <color name="primary_dark">#303F9F</color>
+    <color name="primary_light">#1A1C2E</color>
     <color name="accent">#03DAC5</color>
+
+    <!-- Màu cho Thu nhập/Chi tiêu trong chế độ tối (làm sáng hơn để nổi bật) -->
     <color name="income">#81C784</color>
     <color name="expense">#E57373</color>
     <color name="gray">#9E9E9E</color>
 
     <!-- Semantic colors for Dark Mode -->
-    <color name="backgroundColor">#121212</color>
-    <color name="surfaceColor">#1E1E1E</color>
-    <color name="onSurfaceColor">#FFFFFF</color>
-    <color name="cardBackgroundColor">#1E1E1E</color>
-    <color name="dividerColor">#33FFFFFF</color>
-    <color name="textColorPrimary">#FFFFFF</color>
-    <color name="textColorSecondary">#BDBDBD</color>
+    <color name="backgroundColor">#0F172A</color>
+    <color name="surfaceColor">#1E293B</color>
+    <color name="onSurfaceColor">#F1F5F9</color>
+    <color name="cardBackgroundColor">#1E293B</color>
+    <color name="dividerColor">#334155</color>
+    <color name="textColorPrimary">#F8FAFC</color>
+    <color name="textColorSecondary">#94A3B8</color>
+
+    <!-- Dashboard Specific (Dark) -->
+    <color name="card_dashboard_bg">#1E293B</color>
+    <color name="dashboard_text_on_primary">#F8FAFC</color>
+    <color name="dashboard_text_secondary_on_primary">#94A3B8</color>
+    <color name="dashboard_divider_on_primary">#334155</color>
 </resources>

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    android:background="@color/backgroundColor">
+    android:background="@drawable/bg_app_main">
 
     <TextView
         android:id="@+id/tvTitle"
@@ -24,6 +24,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/username"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"
         android:layout_marginTop="48dp">
 
@@ -40,6 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/email"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         app:layout_constraintTop_toBottomOf="@id/tilUsername"
         android:layout_marginTop="16dp">
 
@@ -56,6 +58,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/password"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         app:passwordToggleEnabled="true"
         app:layout_constraintTop_toBottomOf="@id/tilEmail"
         android:layout_marginTop="16dp">
@@ -73,6 +76,8 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:text="@string/register"
+        android:textStyle="bold"
+        app:cornerRadius="12dp"
         app:layout_constraintTop_toBottomOf="@id/tilPassword"
         android:layout_marginTop="32dp" />
 
@@ -81,7 +86,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/already_have_account"
-        android:textColor="@color/textColorSecondary"
+        android:textColor="@color/primary"
+        android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/btnRegister"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
