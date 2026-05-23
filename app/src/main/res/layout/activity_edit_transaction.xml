@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="?android:attr/windowBackground">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -16,7 +16,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/primary"
             app:title="Chỉnh sửa giao dịch"
             app:navigationIcon="?attr/homeAsUpIndicator" />
     </com.google.android.material.appbar.AppBarLayout>
@@ -35,6 +35,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/cardBackgroundColor"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
                 app:contentPadding="16dp">
@@ -48,7 +49,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Thông tin số tiền"
-                        android:textColor="?attr/colorPrimary"
+                        android:textColor="@color/primary"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="16dp"/>
@@ -66,7 +67,7 @@
                             android:inputType="numberDecimal"
                             android:textSize="24sp"
                             android:textStyle="bold"
-                            android:textColor="#2E7D32"/>
+                            android:textColor="@color/textColorPrimary"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <RadioGroup
@@ -83,8 +84,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Thu nhập"
-                            android:buttonTint="#2E7D32"
-                            android:textColor="#2E7D32"/>
+                            android:buttonTint="@color/income"
+                            android:textColor="@color/income"/>
 
                         <RadioButton
                             android:id="@+id/rbExpense"
@@ -92,8 +93,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Chi tiêu"
-                            android:buttonTint="#C62828"
-                            android:textColor="#C62828"/>
+                            android:buttonTint="@color/expense"
+                            android:textColor="@color/expense"/>
                     </RadioGroup>
 
                 </LinearLayout>
@@ -103,6 +104,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/cardBackgroundColor"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
                 app:contentPadding="16dp">
@@ -116,7 +118,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Chi tiết"
-                        android:textColor="?attr/colorPrimary"
+                        android:textColor="@color/primary"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="16dp"/>
@@ -125,6 +127,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Chọn ví"
+                        android:textColor="@color/textColorSecondary"
                         android:textSize="12sp"
                         android:layout_marginBottom="4dp"/>
 
@@ -132,13 +135,13 @@
                         android:id="@+id/spinnerWallet"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:background="@android:drawable/btn_dropdown"
                         android:layout_marginBottom="16dp"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Danh mục"
+                        android:textColor="@color/textColorSecondary"
                         android:textSize="12sp"
                         android:layout_marginBottom="4dp"/>
 
@@ -146,7 +149,6 @@
                         android:id="@+id/spinnerCategory"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:background="@android:drawable/btn_dropdown"
                         android:layout_marginBottom="16dp"/>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -161,6 +163,7 @@
                             android:layout_height="wrap_content"
                             android:inputType="textMultiLine"
                             android:lines="3"
+                            android:textColor="@color/textColorPrimary"
                             android:gravity="top"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -173,9 +176,11 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="24dp"
                 android:text="CẬP NHẬT THAY ĐỔI"
+                android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:cornerRadius="8dp"/>
+                app:cornerRadius="8dp"
+                android:backgroundTint="@color/primary"/>
 
             <Button
                 android:id="@+id/btnDelete"
@@ -184,7 +189,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="8dp"
                 android:text="Xóa giao dịch này"
-                android:textColor="#C62828"
+                android:textColor="@color/expense"
                 app:rippleColor="#FFEBEE"/>
 
         </LinearLayout>

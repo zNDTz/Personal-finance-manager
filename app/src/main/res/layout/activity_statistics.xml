@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F0F2F5">
+    android:background="@color/backgroundColor">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -15,7 +15,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/primary"
             app:title="Thống Kê Thu Chi"
             app:titleTextColor="@android:color/white"
             app:navigationIcon="?attr/homeAsUpIndicator" />
@@ -37,6 +37,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/cardBackgroundColor"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp">
 
@@ -67,6 +68,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/cardBackgroundColor"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp">
 
@@ -80,7 +82,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="CƠ CẤU CHI TIÊU THEO DANH MỤC"
-                        android:textColor="#C62828"
+                        android:textColor="@color/expense"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -97,6 +99,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/cardBackgroundColor"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="6dp">
 
@@ -110,7 +113,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="CƠ CẤU THU NHẬP THEO DANH MỤC"
-                        android:textColor="#2E7D32"
+                        android:textColor="@color/income"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 

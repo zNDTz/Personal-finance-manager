@@ -1,12 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme cho chế độ sáng -->
     <style name="Base.Theme.Personalfinancemanager" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
 
-        <!-- Đổi ảnh nền chính cho app -->
+        <!-- Hình nền mặc định -->
         <item name="android:windowBackground">@drawable/bg_app_main_image</item>
 
         <item name="android:textColorPrimary">@color/textColorPrimary</item>
@@ -15,6 +14,7 @@
 
     <style name="Theme.Personalfinancemanager" parent="Base.Theme.Personalfinancemanager" />
 
+    <!-- Style cho ảnh đại diện hình tròn - Cần thiết để không bị crash -->
     <style name="CircleImage" parent="">
         <item name="cornerSize">50%</item>
     </style>

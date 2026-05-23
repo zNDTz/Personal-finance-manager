@@ -1,15 +1,28 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.Personalfinancemanager" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
 
-        <!-- Đổi ảnh nền chính cho app (Dark Mode) -->
-        <item name="android:windowBackground">@drawable/bg_app_main_image</item>
+        <!-- Nền tối chuẩn cho các trang khác -->
+        <item name="android:windowBackground">@color/backgroundColor</item>
 
         <item name="android:textColorPrimary">@color/textColorPrimary</item>
         <item name="android:textColorSecondary">@color/textColorSecondary</item>
+
+        <item name="colorOnSurface">@color/onSurfaceColor</item>
+        <item name="colorOnSurfaceVariant">@color/textColorSecondary</item>
+        <item name="colorOutline">@color/dividerColor</item>
+        <item name="colorSurface">@color/surfaceColor</item>
+
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+    </style>
+
+    <style name="Theme.Personalfinancemanager" parent="Base.Theme.Personalfinancemanager" />
+
+    <!-- Style cực kỳ quan trọng để không bị crash khi hiện ảnh đại diện -->
+    <style name="CircleImage" parent="">
+        <item name="cornerSize">50%</item>
     </style>
 </resources>

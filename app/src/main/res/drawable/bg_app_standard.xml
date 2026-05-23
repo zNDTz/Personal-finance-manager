@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Mặc định sẽ dùng hình nền con heo đất (Chế độ sáng) -->
+    <item android:drawable="@drawable/bg_app_main_image" />
+</selector>

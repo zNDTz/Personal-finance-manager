@@ -2,7 +2,8 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -12,7 +13,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/primary"
             app:title="Thông tin cá nhân"
             app:titleTextColor="@android:color/white"
             app:navigationIcon="?attr/homeAsUpIndicator" />
@@ -38,7 +39,7 @@
                 android:src="@android:drawable/ic_menu_gallery"
                 app:shapeAppearanceOverlay="@style/CircleImage"
                 android:layout_marginBottom="8dp"
-                android:background="#EEEEEE"
+                android:background="#F0F2F5"
                 android:padding="4dp" />
 
             <TextView
@@ -46,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Thay đổi ảnh đại diện"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="@color/primary"
                 android:layout_marginBottom="24dp" />
 
             <com.google.android.material.textfield.TextInputLayout
@@ -54,13 +55,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Tên người dùng"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etUsername"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName" />
+                    android:inputType="textPersonName"
+                    android:textColor="#0F172A" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -68,6 +71,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Email"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginBottom="24dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -75,7 +79,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textEmailAddress"
-                    android:enabled="false" />
+                    android:enabled="false"
+                    android:textColor="#475569" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -84,7 +89,7 @@
                 android:text="Chế độ hiển thị"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"
-                android:textColor="?android:attr/textColorPrimary" />
+                android:textColor="#0F172A" />
 
             <com.google.android.material.button.MaterialButtonToggleGroup
                 android:id="@+id/toggleTheme"
@@ -120,7 +125,9 @@
                 android:id="@+id/btnUpdateProfile"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:text="Cập nhật thông tin" />
+                android:text="Cập nhật thông tin"
+                android:backgroundTint="@color/primary"
+                android:textColor="@android:color/white" />
 
             <Button
                 android:id="@+id/btnManageWallets"
@@ -129,7 +136,9 @@
                 android:layout_height="60dp"
                 android:layout_marginTop="12dp"
                 android:text="Quản lý ví (Wallets)"
-                app:icon="@android:drawable/ic_menu_agenda" />
+                app:icon="@android:drawable/ic_menu_agenda"
+                app:iconTint="@color/primary"
+                android:textColor="@color/primary" />
 
             <Button
                 android:id="@+id/btnLogout"
@@ -138,7 +147,7 @@
                 android:layout_height="60dp"
                 android:layout_marginTop="16dp"
                 android:text="Đăng xuất"
-                android:textColor="#C62828" />
+                android:textColor="@color/expense" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
