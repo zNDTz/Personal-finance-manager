@@ -1,3 +1,16 @@
+tasks.register("renameResources") {
+    doLast {
+        val xmlFile = file("src/main/res/drawable/bg_app_main_image.xml")
+        if (xmlFile.exists()) {
+            xmlFile.renameTo(file("src/main/res/drawable/bg_app_main_gradient.xml"))
+        }
+        val jpgFile = file("src/main/res/drawable/bg_app_main_image_file.jpg")
+        if (jpgFile.exists()) {
+            jpgFile.renameTo(file("src/main/res/drawable/bg_app_main_image.jpg"))
+        }
+    }
+}
+
 plugins {
     alias(libs.plugins.android.application)
 }

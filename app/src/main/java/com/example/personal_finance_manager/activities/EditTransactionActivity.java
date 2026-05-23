@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -44,9 +45,12 @@ public class EditTransactionActivity extends AppCompatActivity {
     private RadioGroup rgType;
     private Button btnUpdate, btnDelete;
     private TokenManager tokenManager;
-    private List<Category> categories = new ArrayList<>();
+    
+    private List<Category> allCategories = new ArrayList<>();
+    private List<Category> filteredCategories = new ArrayList<>();
     private List<Wallet> wallets = new ArrayList<>();
     private List<Transaction> allTransactions = new ArrayList<>();
+    
     private ArrayAdapter<Category> categoryAdapter;
     private ArrayAdapter<Wallet> walletAdapter;
     private Transaction currentTransaction;
@@ -54,7 +58,6 @@ public class EditTransactionActivity extends AppCompatActivity {
     private ImageView ivUserAvatarHeader;
     private TextView tvHeaderUsername;
 
-    // Repositories
     private TransactionRepository transactionRepository;
     private CategoryRepository categoryRepository;
     private WalletRepository walletRepository;
@@ -80,6 +83,12 @@ public class EditTransactionActivity extends AppCompatActivity {
         loadCategories();
         loadWallets();
         loadTransactions();
+
+        // Lắng nghe sự thay đổi của Thu nhập/Chi tiêu để lọc danh mục ngay lập tức
+        rgType.setOnCheckedChangeListener((group, checkedId) -> {
+            String selectedType = (checkedId == R.id.rbIncome) ? "INCOME" : "EXPENSE";
+            updateCategorySpinner(selectedType, null);
+        });
 
         btnUpdate.setOnClickListener(v -> updateTransaction());
         btnDelete.setOnClickListener(v -> showDeleteConfirmation());
@@ -116,13 +125,58 @@ public class EditTransactionActivity extends AppCompatActivity {
             }
         }
 
-        categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
+        categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, filteredCategories);
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(categoryAdapter);
 
         walletAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, wallets);
         walletAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerWallet.setAdapter(walletAdapter);
+    }
+
+    private void loadCategories() {
+        categoryRepository.getCategories(new CategoryRepository.DataCallback<List<Category>>() {
+            @Override
+            public void onSuccess(List<Category> data) {
+                allCategories.clear();
+                allCategories.addAll(data);
+                
+                // Lọc danh mục theo loại giao dịch ban đầu của giao dịch đang sửa
+                String initialType = (rgType.getCheckedRadioButtonId() == R.id.rbIncome) ? "INCOME" : "EXPENSE";
+                String initialCategoryName = (currentTransaction != null) ? currentTransaction.getCategory() : null;
+                updateCategorySpinner(initialType, initialCategoryName);
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(EditTransactionActivity.this, "Lỗi tải danh mục", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateCategorySpinner(String type, String selectedCategoryName) {
+        filteredCategories.clear();
+        for (Category cat : allCategories) {
+            if (type.equals(cat.getType())) {
+                filteredCategories.add(cat);
+            }
+        }
+        categoryAdapter.notifyDataSetChanged();
+
+        // Nếu chuyển từ Chi tiêu sang Thu nhập, hoặc ngược lại, cần chọn lại hạng mục phù hợp
+        if (selectedCategoryName != null) {
+            for (int i = 0; i < filteredCategories.size(); i++) {
+                if (filteredCategories.get(i).getName().equals(selectedCategoryName)) {
+                    spinnerCategory.setSelection(i);
+                    return;
+                }
+            }
+        }
+        
+        // Nếu không tìm thấy hạng mục cũ trong danh sách mới (do khác loại), chọn hạng mục đầu tiên
+        if (!filteredCategories.isEmpty()) {
+            spinnerCategory.setSelection(0);
+        }
     }
 
     private void loadUserProfile() {
@@ -145,31 +199,6 @@ public class EditTransactionActivity extends AppCompatActivity {
             }
             @Override
             public void onFailure(Call<User> call, Throwable t) {}
-        });
-    }
-
-    private void loadCategories() {
-        categoryRepository.getCategories(new CategoryRepository.DataCallback<List<Category>>() {
-            @Override
-            public void onSuccess(List<Category> data) {
-                categories.clear();
-                categories.addAll(data);
-                categoryAdapter.notifyDataSetChanged();
-                
-                if (currentTransaction != null) {
-                    for (int i = 0; i < categories.size(); i++) {
-                        if (categories.get(i).getName().equals(currentTransaction.getCategory())) {
-                            spinnerCategory.setSelection(i);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onError(String message) {
-                Toast.makeText(EditTransactionActivity.this, "Sử dụng danh mục offline", Toast.LENGTH_SHORT).show();
-            }
         });
     }
 
@@ -224,24 +253,30 @@ public class EditTransactionActivity extends AppCompatActivity {
             Toast.makeText(this, "Chưa chọn ví", Toast.LENGTH_SHORT).show();
             return;
         }
+        
+        if (selectedCategory == null) {
+            Toast.makeText(this, "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         double amount = Double.parseDouble(amountStr);
-        String type = rgType.getCheckedRadioButtonId() == R.id.rbIncome ? "INCOME" : "EXPENSE";
+        String type = (rgType.getCheckedRadioButtonId() == R.id.rbIncome) ? "INCOME" : "EXPENSE";
 
-        // Kiểm tra ngân sách trước khi cập nhật
-        if (selectedCategory != null) {
-            checkBudget(selectedCategory, amount, type);
+        // Kiểm tra logic loại hạng mục trước khi lưu
+        if (!selectedCategory.getType().equals(type)) {
+            Toast.makeText(this, "Danh mục không phù hợp với loại giao dịch!", Toast.LENGTH_LONG).show();
+            return;
         }
+
+        checkBudget(selectedCategory, amount, type);
 
         currentTransaction.setAmount(amount);
         currentTransaction.setTitle(description);
         currentTransaction.setType(type);
         currentTransaction.setWalletId(selectedWallet.getId());
-        if (selectedCategory != null) {
-            currentTransaction.setCategory(selectedCategory.getName());
-            currentTransaction.setCategoryName(selectedCategory.getName());
-            currentTransaction.setCategoryId(selectedCategory.getId());
-        }
+        currentTransaction.setCategory(selectedCategory.getName());
+        currentTransaction.setCategoryName(selectedCategory.getName());
+        currentTransaction.setCategoryId(selectedCategory.getId());
 
         transactionRepository.updateTransaction(currentTransaction, new TransactionRepository.DataCallback<Transaction>() {
             @Override
@@ -262,7 +297,6 @@ public class EditTransactionActivity extends AppCompatActivity {
 
         double currentTotal = 0;
         for (Transaction t : allTransactions) {
-            // Không tính giao dịch hiện tại đang sửa
             if (t.getId().equals(currentTransaction.getId())) continue;
 
             if (category.getName().equals(t.getCategoryName()) && type.equals(t.getType())) {

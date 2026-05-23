@@ -22,4 +22,10 @@
     <string name="already_have_account">Đã có tài khoản? Đăng nhập</string>
     <string name="create_account">Tạo tài khoản</string>
     <string name="personal_finance">Tài chính Cá nhân</string>
+
+    <!-- Shortcut & UI strings -->
+    <string name="shortcut_add_short">Thêm mới</string>
+    <string name="shortcut_add_long">Thêm giao dịch mới</string>
+    <string name="welcome_back">Chào mừng trở lại!</string>
+    <string name="login_illustration_desc">Hình minh họa tài chính tiết kiệm</string>
 </resources>
