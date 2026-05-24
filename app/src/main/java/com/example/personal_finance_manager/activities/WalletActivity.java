@@ -133,7 +133,6 @@ public class WalletActivity extends AppCompatActivity {
         spinnerFrom.setAdapter(walletSpinnerAdapter);
         spinnerTo.setAdapter(walletSpinnerAdapter);
         
-        // Mặc định chọn ví 1 làm ví gửi, ví 2 làm ví nhận
         spinnerTo.setSelection(1);
 
         builder.setView(view)
@@ -162,7 +161,7 @@ public class WalletActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(String data) {
                             Toast.makeText(WalletActivity.this, "Chuyển tiền thành công!", Toast.LENGTH_SHORT).show();
-                            loadWallets(); // Reload wallets to update balances (though server handles it via transactions)
+                            loadWallets();
                         }
 
                         @Override
@@ -211,7 +210,6 @@ public class WalletActivity extends AppCompatActivity {
                     }
 
                     if (wallet == null) {
-                        // Tạo ID tạm thời để thỏa mãn @NonNull của Room
                         String tempId = "temp_" + System.currentTimeMillis();
                         Wallet newWallet = new Wallet(tempId, name, balance, "");
                         addWallet(newWallet);

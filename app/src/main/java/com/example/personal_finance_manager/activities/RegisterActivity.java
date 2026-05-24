@@ -60,7 +60,6 @@ public class RegisterActivity extends AppCompatActivity {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // Reset error
         tilEmail.setError(null);
 
         if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {

@@ -15,7 +15,7 @@ public class User {
     
     private String username;
     private String email;
-    private String avatar; // Base64 string
+    private String avatar;
 
     public User() {}
 

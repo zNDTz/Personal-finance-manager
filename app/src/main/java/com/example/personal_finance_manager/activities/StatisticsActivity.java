@@ -167,10 +167,9 @@ public class StatisticsActivity extends AppCompatActivity {
         Map<String, Double> monthlyExpense = new TreeMap<>();
 
         for (Transaction t : transactions) {
-            // Lấy tháng từ chuỗi "yyyy-MM-dd"
             String month = "Khác";
             if (t.getDate() != null && t.getDate().length() >= 7) {
-                month = t.getDate().substring(0, 7); // Lấy "yyyy-MM"
+                month = t.getDate().substring(0, 7);
             }
 
             String cat = t.getCategory() != null ? t.getCategory() : "Khác";

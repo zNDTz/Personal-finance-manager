@@ -40,7 +40,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Transaction transaction = transactions.get(position);
         
-        // Cập nhật đúng tên trường từ server
         holder.tvCategory.setText(transaction.getCategoryName() != null ? transaction.getCategoryName() : "Khác");
         holder.tvDescription.setText(transaction.getDescription() != null ? transaction.getDescription() : "");
         holder.tvDate.setText(transaction.getDate() != null ? transaction.getDate() : "");

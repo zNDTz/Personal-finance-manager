@@ -11,7 +11,6 @@ import com.example.personal_finance_manager.models.Transaction;
 import com.example.personal_finance_manager.models.User;
 import com.example.personal_finance_manager.models.Wallet;
 
-// Nâng lên version 9 để hỗ trợ Multi-wallets
 @Database(entities = {Transaction.class, Category.class, User.class, Wallet.class}, version = 9)
 public abstract class AppDatabase extends RoomDatabase {
 

@@ -7,7 +7,6 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-// Kết nối MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB successfully"))
@@ -19,7 +18,6 @@ const transformRes = (doc, ret) => {
   delete ret.__v;
 };
 
-// --- Models ---
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -59,12 +57,10 @@ const TransactionSchema = new mongoose.Schema({
 TransactionSchema.set("toJSON", { transform: transformRes });
 const Transaction = mongoose.model("Transaction", TransactionSchema);
 
-// Middleware
 app.use(cors());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
-// Log yêu cầu để debug
 app.use((req, res, next) => {
   console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
   next();
@@ -73,16 +69,10 @@ app.use((req, res, next) => {
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-  if (!token) {
-    console.log("Auth failed: No token provided");
-    return res.status(401).json({ message: "Vui lòng đăng nhập" });
-  }
+  if (!token) return res.status(401).json({ message: "Vui lòng đăng nhập" });
 
   jwt.verify(token, process.env.SECRET_KEY || "YOUR_SECRET_KEY", (err, user) => {
-    if (err) {
-      console.log("Auth failed: Invalid or expired token");
-      return res.status(403).json({ message: "Hết hạn đăng nhập" });
-    }
+    if (err) return res.status(403).json({ message: "Hết hạn đăng nhập" });
     req.user = user;
     next();
   });
@@ -105,7 +95,6 @@ const initializeDefaults = async (userId) => {
   }
 };
 
-// --- API AUTH ---
 app.post("/api/auth/register", async (req, res) => {
   const { username, email, password } = req.body;
   try {
@@ -166,9 +155,7 @@ app.put("/api/auth/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// API Đổi mật khẩu
 app.post("/api/auth/change-password", authenticateToken, async (req, res) => {
-  console.log("Request change password for user:", req.user.id);
   try {
     const { currentPassword, oldPassword, newPassword } = req.body;
     const pwdInput = currentPassword || oldPassword;
@@ -177,21 +164,17 @@ app.post("/api/auth/change-password", authenticateToken, async (req, res) => {
     if (!user) return res.status(404).json({ message: "Người dùng không tồn tại" });
 
     if (user.password !== pwdInput) {
-      console.log("Password mismatch: expected", user.password, "but got", pwdInput);
       return res.status(401).json({ message: "Mật khẩu hiện tại không chính xác" });
     }
 
     user.password = newPassword;
     await user.save();
-    console.log("Password changed successfully");
     res.json({ message: "Đổi mật khẩu thành công" });
   } catch (error) {
-    console.error("Change password error:", error);
     res.status(500).json({ message: "Lỗi server khi đổi mật khẩu" });
   }
 });
 
-// --- API WALLETS, CATEGORIES, TRANSACTIONS ---
 app.get("/api/wallets", authenticateToken, async (req, res) => {
   res.json(await Wallet.find({ userId: req.user.id }));
 });

@@ -44,7 +44,6 @@ public class CategoryActivity extends AppCompatActivity {
     private List<Category> categoryList = new ArrayList<>();
     private FloatingActionButton fabAddCategory;
     
-    // User Header Views
     private ImageView ivUserAvatarHeader;
     private TextView tvHeaderUsername;
     private View layoutUserHeader;
@@ -124,7 +123,6 @@ public class CategoryActivity extends AppCompatActivity {
     }
 
     private void loadData() {
-        // Load transactions first to update budget progress in adapter
         transactionRepository.getTransactions(new TransactionRepository.DataCallback<List<Transaction>>() {
             @Override
             public void onSuccess(List<Transaction> transactions) {

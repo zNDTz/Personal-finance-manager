@@ -19,7 +19,7 @@ public class Transaction {
     private String description;
     
     @SerializedName("date")
-    private String date; // Bắt buộc là String để khớp với JSON "2026-04-20"
+    private String date;
     
     @SerializedName("categoryId")
     private String categoryId;
@@ -38,7 +38,6 @@ public class Transaction {
 
     public Transaction() {}
 
-    // Constructor đầy đủ để tương thích với code cũ trong các Activity
     public Transaction(String id, double amount, String description, String date, String categoryId, String categoryName, String type, String walletId) {
         this.id = id;
         this.amount = amount;
@@ -78,7 +77,6 @@ public class Transaction {
     public String getWalletId() { return walletId; }
     public void setWalletId(String walletId) { this.walletId = walletId; }
 
-    // Các hàm getter/setter phụ trợ
     public String getTitle() { return description; }
     public void setTitle(String title) { this.description = title; }
     public String getCategory() { return categoryName; }

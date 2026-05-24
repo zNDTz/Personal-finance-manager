@@ -84,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
     private CategoryRepository categoryRepository;
     private WalletRepository walletRepository;
 
-    // Filter states
     private String filterType = "ALL";
     private String filterCategory = "Tất cả";
     private String filterStartDate = "";
@@ -209,7 +208,6 @@ public class MainActivity extends AppCompatActivity {
                 walletAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerWalletFilter.setAdapter(walletAdapter);
 
-                // Update summary to include wallet balances
                 applyFilters();
             }
 
@@ -228,7 +226,6 @@ public class MainActivity extends AppCompatActivity {
         TextView tvEndDate = view.findViewById(R.id.tvEndDate);
         Button btnReset = view.findViewById(R.id.btnResetFilter);
 
-        // Set current states
         if ("INCOME".equals(filterType)) rgType.check(R.id.rbFilterIncome);
         else if ("EXPENSE".equals(filterType)) rgType.check(R.id.rbFilterExpense);
         else rgType.check(R.id.rbFilterAll);
@@ -236,7 +233,6 @@ public class MainActivity extends AppCompatActivity {
         tvStartDate.setText(filterStartDate.isEmpty() ? "Từ ngày" : filterStartDate);
         tvEndDate.setText(filterEndDate.isEmpty() ? "Đến ngày" : filterEndDate);
 
-        // Load categories into spinner
         categoryRepository.getCategories(new CategoryRepository.DataCallback<List<Category>>() {
             @Override
             public void onSuccess(List<Category> categories) {
@@ -300,23 +296,18 @@ public class MainActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
         for (Transaction t : fullTransactionList) {
-            // Filter by search query - Null safe check
             String title = t.getTitle() != null ? t.getTitle().toLowerCase() : "";
             String category = t.getCategoryName() != null ? t.getCategoryName().toLowerCase() : "";
             
             boolean matchesQuery = title.contains(query) || category.contains(query);
             if (!matchesQuery) continue;
 
-            // Filter by type
             if (!filterType.equals("ALL") && !t.getType().equals(filterType)) continue;
 
-            // Filter by category
             if (!filterCategory.equals("Tất cả") && !filterCategory.equals(t.getCategoryName())) continue;
 
-            // Filter by wallet
             if (!filterWalletId.equals("ALL") && (t.getWalletId() == null || !t.getWalletId().equals(filterWalletId))) continue;
 
-            // Filter by date
             try {
                 if (!filterStartDate.isEmpty()) {
                     Date start = sdf.parse(filterStartDate);
@@ -397,7 +388,6 @@ public class MainActivity extends AppCompatActivity {
         double totalExpense = 0;
         double initialBalance = 0;
 
-        // Calculate initial balance based on filtered wallets
         if (filterWalletId.equals("ALL")) {
             for (Wallet w : walletList) {
                 initialBalance += w.getBalance();

@@ -84,7 +84,6 @@ public class EditTransactionActivity extends AppCompatActivity {
         loadWallets();
         loadTransactions();
 
-        // Lắng nghe sự thay đổi của Thu nhập/Chi tiêu để lọc danh mục ngay lập tức
         rgType.setOnCheckedChangeListener((group, checkedId) -> {
             String selectedType = (checkedId == R.id.rbIncome) ? "INCOME" : "EXPENSE";
             updateCategorySpinner(selectedType, null);
@@ -134,51 +133,6 @@ public class EditTransactionActivity extends AppCompatActivity {
         spinnerWallet.setAdapter(walletAdapter);
     }
 
-    private void loadCategories() {
-        categoryRepository.getCategories(new CategoryRepository.DataCallback<List<Category>>() {
-            @Override
-            public void onSuccess(List<Category> data) {
-                allCategories.clear();
-                allCategories.addAll(data);
-                
-                // Lọc danh mục theo loại giao dịch ban đầu của giao dịch đang sửa
-                String initialType = (rgType.getCheckedRadioButtonId() == R.id.rbIncome) ? "INCOME" : "EXPENSE";
-                String initialCategoryName = (currentTransaction != null) ? currentTransaction.getCategory() : null;
-                updateCategorySpinner(initialType, initialCategoryName);
-            }
-
-            @Override
-            public void onError(String message) {
-                Toast.makeText(EditTransactionActivity.this, "Lỗi tải danh mục", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void updateCategorySpinner(String type, String selectedCategoryName) {
-        filteredCategories.clear();
-        for (Category cat : allCategories) {
-            if (type.equals(cat.getType())) {
-                filteredCategories.add(cat);
-            }
-        }
-        categoryAdapter.notifyDataSetChanged();
-
-        // Nếu chuyển từ Chi tiêu sang Thu nhập, hoặc ngược lại, cần chọn lại hạng mục phù hợp
-        if (selectedCategoryName != null) {
-            for (int i = 0; i < filteredCategories.size(); i++) {
-                if (filteredCategories.get(i).getName().equals(selectedCategoryName)) {
-                    spinnerCategory.setSelection(i);
-                    return;
-                }
-            }
-        }
-        
-        // Nếu không tìm thấy hạng mục cũ trong danh sách mới (do khác loại), chọn hạng mục đầu tiên
-        if (!filteredCategories.isEmpty()) {
-            spinnerCategory.setSelection(0);
-        }
-    }
-
     private void loadUserProfile() {
         ApiClient.getApiService(this).getProfile().enqueue(new Callback<User>() {
             @Override
@@ -200,6 +154,48 @@ public class EditTransactionActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<User> call, Throwable t) {}
         });
+    }
+
+    private void loadCategories() {
+        categoryRepository.getCategories(new CategoryRepository.DataCallback<List<Category>>() {
+            @Override
+            public void onSuccess(List<Category> data) {
+                allCategories.clear();
+                allCategories.addAll(data);
+                
+                String initialType = (rgType.getCheckedRadioButtonId() == R.id.rbIncome) ? "INCOME" : "EXPENSE";
+                String initialCategoryName = (currentTransaction != null) ? currentTransaction.getCategory() : null;
+                updateCategorySpinner(initialType, initialCategoryName);
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(EditTransactionActivity.this, "Lỗi tải danh mục", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateCategorySpinner(String type, String selectedCategoryName) {
+        filteredCategories.clear();
+        for (Category cat : allCategories) {
+            if (cat.getType().equals(type)) {
+                filteredCategories.add(cat);
+            }
+        }
+        categoryAdapter.notifyDataSetChanged();
+
+        if (selectedCategoryName != null) {
+            for (int i = 0; i < filteredCategories.size(); i++) {
+                if (filteredCategories.get(i).getName().equals(selectedCategoryName)) {
+                    spinnerCategory.setSelection(i);
+                    return;
+                }
+            }
+        }
+        
+        if (!filteredCategories.isEmpty()) {
+            spinnerCategory.setSelection(0);
+        }
     }
 
     private void loadWallets() {
@@ -262,7 +258,6 @@ public class EditTransactionActivity extends AppCompatActivity {
         double amount = Double.parseDouble(amountStr);
         String type = (rgType.getCheckedRadioButtonId() == R.id.rbIncome) ? "INCOME" : "EXPENSE";
 
-        // Kiểm tra logic loại hạng mục trước khi lưu
         if (!selectedCategory.getType().equals(type)) {
             Toast.makeText(this, "Danh mục không phù hợp với loại giao dịch!", Toast.LENGTH_LONG).show();
             return;

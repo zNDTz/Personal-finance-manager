@@ -61,18 +61,17 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             
             int color;
             if (isIncome) {
-                color = 0xFF2E7D32; // Luôn màu xanh lá cho Thu nhập
+                color = 0xFF2E7D32;
                 holder.tvBudgetText.setText(String.format(Locale.getDefault(), 
                     "Đã thu: %,.0f / %,.0f đ (%d%%)", currentAmount, category.getBudget(), progress));
                 holder.tvBudgetText.setTextColor(0xFF757575);
             } else {
-                // Logic màu sắc cho Chi tiêu
                 if (progress >= 90) {
-                    color = 0xFFC62828; // Đỏ (>= 90%)
+                    color = 0xFFC62828;
                 } else if (progress >= 60) {
-                    color = 0xFFFBC02D; // Vàng (60% - 90%)
+                    color = 0xFFFBC02D;
                 } else {
-                    color = 0xFF2E7D32; // Xanh lá (< 60%)
+                    color = 0xFF2E7D32;
                 }
                 
                 holder.tvBudgetText.setText(String.format(Locale.getDefault(), 

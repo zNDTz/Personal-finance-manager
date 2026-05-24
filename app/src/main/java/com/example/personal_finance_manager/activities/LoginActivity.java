@@ -73,7 +73,6 @@ public class LoginActivity extends AppCompatActivity {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // Reset error
         tilEmail.setError(null);
 
         if (email.isEmpty() || password.isEmpty()) {
@@ -103,7 +102,6 @@ public class LoginActivity extends AppCompatActivity {
                     String token = response.body().get("token");
                     tokenManager.saveToken(token);
                     
-                    // Xóa dữ liệu cũ trong Database khi đăng nhập tài khoản mới
                     Executors.newSingleThreadExecutor().execute(() -> {
                         AppDatabase.getInstance(LoginActivity.this).clearAllTables();
                     });

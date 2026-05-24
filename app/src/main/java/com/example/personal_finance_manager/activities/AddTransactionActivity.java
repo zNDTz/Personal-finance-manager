@@ -76,7 +76,6 @@ public class AddTransactionActivity extends AppCompatActivity {
         loadWallets();
         loadTransactions();
 
-        // Tự động lọc danh mục khi chọn Thu nhập/Chi tiêu
         rgType.setOnCheckedChangeListener((group, checkedId) -> {
             String selectedType = (checkedId == R.id.rbIncome) ? "INCOME" : "EXPENSE";
             updateCategorySpinner(selectedType);
@@ -223,13 +222,11 @@ public class AddTransactionActivity extends AppCompatActivity {
         double amount = Double.parseDouble(amountStr);
         String type = (rgType.getCheckedRadioButtonId() == R.id.rbIncome) ? "INCOME" : "EXPENSE";
 
-        // Kiểm tra logic loại hạng mục trước khi lưu
         if (!selectedCategory.getType().equals(type)) {
             Toast.makeText(this, "Danh mục không phù hợp với loại giao dịch!", Toast.LENGTH_LONG).show();
             return;
         }
         
-        // Kiểm tra ngân sách
         checkBudget(selectedCategory, amount, type);
 
         String dateStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());

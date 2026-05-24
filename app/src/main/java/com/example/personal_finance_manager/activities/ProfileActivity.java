@@ -229,7 +229,6 @@ public class ProfileActivity extends AppCompatActivity {
         String newUsername = etUsername.getText().toString().trim();
         String newEmail = etEmail.getText().toString().trim();
 
-        // Reset errors
         tilUsername.setError(null);
         tilEmail.setError(null);
 
@@ -271,7 +270,6 @@ public class ProfileActivity extends AppCompatActivity {
     private void logout() {
         tokenManager.clearToken();
         
-        // Xóa sạch database cục bộ khi đăng xuất để bảo mật dữ liệu
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase.getInstance(this).clearAllTables();
         });
