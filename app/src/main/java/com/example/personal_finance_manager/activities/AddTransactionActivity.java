@@ -76,8 +76,10 @@ public class AddTransactionActivity extends AppCompatActivity {
         loadWallets();
         loadTransactions();
 
+        // Tự động lọc danh mục khi chọn Thu nhập/Chi tiêu
         rgType.setOnCheckedChangeListener((group, checkedId) -> {
-            updateCategorySpinner(checkedId == R.id.rbIncome ? "INCOME" : "EXPENSE");
+            String selectedType = (checkedId == R.id.rbIncome) ? "INCOME" : "EXPENSE";
+            updateCategorySpinner(selectedType);
         });
 
         btnSave.setOnClickListener(v -> saveTransaction());
@@ -209,28 +211,27 @@ public class AddTransactionActivity extends AppCompatActivity {
         }
         
         if (selectedCategory == null) {
-            Toast.makeText(this, "Chưa có danh mục", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (selectedWallet == null) {
-            Toast.makeText(this, "Chưa chọn ví", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Vui lòng chọn ví", Toast.LENGTH_SHORT).show();
             return;
         }
 
         double amount = Double.parseDouble(amountStr);
         String type = (rgType.getCheckedRadioButtonId() == R.id.rbIncome) ? "INCOME" : "EXPENSE";
-        
+
         // Kiểm tra logic loại hạng mục trước khi lưu
         if (!selectedCategory.getType().equals(type)) {
             Toast.makeText(this, "Danh mục không phù hợp với loại giao dịch!", Toast.LENGTH_LONG).show();
             return;
         }
-
+        
         // Kiểm tra ngân sách
         checkBudget(selectedCategory, amount, type);
 
-        // Tạo chuỗi ngày tháng dạng yyyy-MM-dd để đồng bộ với server
         String dateStr = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
         Transaction transaction = new Transaction();

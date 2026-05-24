@@ -10,10 +10,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import java.util.concurrent.TimeUnit;
 
 public class ApiClient {
-    // SỬA LẠI: 
-    // 1. Phải dùng http (không phải https) vì server chạy local không có SSL
-    // 2. Phải thêm cổng :3000 ở sau địa chỉ IP
-    private static final String BASE_URL = "https://personal-finance-manager-0cd4.onrender.com/";
+    // SỬA LẠI: Kết nối tới server local trên máy tính của bạn để test tính năng mới
+    // Dùng 10.0.2.2 nếu chạy giả lập Android Studio, hoặc dùng IP máy tính nếu chạy máy thật
+    private static final String BASE_URL = "http://10.0.2.2:3000/";
 
     private static Retrofit retrofit = null;
     private static Retrofit retrofitWithAuth = null;

@@ -7,13 +7,12 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-// Kết nối MongoDB sử dụng biến môi trường
+// Kết nối MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB successfully"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Chuyển đổi _id của MongoDB thành id để khớp với Model Android (GSON)
 const transformRes = (doc, ret) => {
   ret.id = ret._id.toString();
   delete ret._id;
@@ -49,11 +48,7 @@ const Wallet = mongoose.model("Wallet", WalletSchema);
 
 const TransactionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  walletId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Wallet",
-    required: true,
-  },
+  walletId: { type: mongoose.Schema.Types.ObjectId, ref: "Wallet", required: true },
   categoryId: { type: String },
   amount: { type: Number, required: true },
   type: { type: String, enum: ["INCOME", "EXPENSE"], required: true },
@@ -78,10 +73,16 @@ app.use((req, res, next) => {
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "Vui lòng đăng nhập" });
+  if (!token) {
+    console.log("Auth failed: No token provided");
+    return res.status(401).json({ message: "Vui lòng đăng nhập" });
+  }
 
-  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
-    if (err) return res.status(403).json({ message: "Hết hạn đăng nhập" });
+  jwt.verify(token, process.env.SECRET_KEY || "YOUR_SECRET_KEY", (err, user) => {
+    if (err) {
+      console.log("Auth failed: Invalid or expired token");
+      return res.status(403).json({ message: "Hết hạn đăng nhập" });
+    }
     req.user = user;
     next();
   });
@@ -110,7 +111,6 @@ app.post("/api/auth/register", async (req, res) => {
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "Email đã tồn tại" });
-
     const newUser = new User({ username, email, password });
     await newUser.save();
     await initializeDefaults(newUser._id);
@@ -128,7 +128,7 @@ app.post("/api/auth/login", async (req, res) => {
       await initializeDefaults(user._id);
       const token = jwt.sign(
         { id: user._id, email: user.email },
-        process.env.SECRET_KEY,
+        process.env.SECRET_KEY || "YOUR_SECRET_KEY",
         { expiresIn: "24h" }
       );
       res.status(200).json({ token, message: "Đăng nhập thành công" });
@@ -148,31 +148,50 @@ app.get("/api/auth/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// FIX: Cập nhật hồ sơ
 app.put("/api/auth/profile", authenticateToken, async (req, res) => {
   try {
     const { username, email, avatar } = req.body;
-
     if (email) {
       const existing = await User.findOne({ email, _id: { $ne: req.user.id } });
       if (existing) return res.status(400).json({ message: "Email đã được sử dụng bởi người khác" });
     }
-
     const updateData = {};
     if (username) updateData.username = username;
     if (email) updateData.email = email;
     if (avatar) updateData.avatar = avatar;
-
     const user = await User.findByIdAndUpdate(req.user.id, { $set: updateData }, { new: true }).select("-password");
-    if (!user) return res.status(404).json({ message: "Người dùng không tồn tại" });
     res.json(user);
   } catch (error) {
-    console.error("Update profile error:", error);
-    res.status(500).json({ message: "Lỗi server khi cập nhật hồ sơ" });
+    res.status(500).json({ message: "Lỗi server" });
   }
 });
 
-// --- API WALLETS, CATEGORIES, TRANSACTIONS (CRUD đầy đủ) ---
+// API Đổi mật khẩu
+app.post("/api/auth/change-password", authenticateToken, async (req, res) => {
+  console.log("Request change password for user:", req.user.id);
+  try {
+    const { currentPassword, oldPassword, newPassword } = req.body;
+    const pwdInput = currentPassword || oldPassword;
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "Người dùng không tồn tại" });
+
+    if (user.password !== pwdInput) {
+      console.log("Password mismatch: expected", user.password, "but got", pwdInput);
+      return res.status(401).json({ message: "Mật khẩu hiện tại không chính xác" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+    console.log("Password changed successfully");
+    res.json({ message: "Đổi mật khẩu thành công" });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({ message: "Lỗi server khi đổi mật khẩu" });
+  }
+});
+
+// --- API WALLETS, CATEGORIES, TRANSACTIONS ---
 app.get("/api/wallets", authenticateToken, async (req, res) => {
   res.json(await Wallet.find({ userId: req.user.id }));
 });
@@ -233,7 +252,6 @@ app.delete("/api/transactions/:id", authenticateToken, async (req, res) => {
   res.json({ message: "Xóa thành công" });
 });
 
-// LOGIC CHUYỂN TIỀN (TRANSFER)
 app.post("/api/wallets/transfer", authenticateToken, async (req, res) => {
   const { fromWalletId, toWalletId, amount, note } = req.body;
   const session = await mongoose.startSession();
@@ -242,30 +260,20 @@ app.post("/api/wallets/transfer", authenticateToken, async (req, res) => {
     const fromW = await Wallet.findOne({ _id: fromWalletId, userId: req.user.id }).session(session);
     const toW = await Wallet.findOne({ _id: toWalletId, userId: req.user.id }).session(session);
     if (!fromW || !toW) throw new Error("Không tìm thấy ví");
-
     const amt = parseFloat(amount);
-    if (isNaN(amt) || amt <= 0) throw new Error("Số tiền không hợp lệ");
-
     const dateStr = new Date().toISOString().split("T")[0];
-
-    // Giao dịch Chi
     await new Transaction({
       userId: req.user.id, walletId: fromWalletId, amount: amt,
       type: "EXPENSE", categoryName: "Chuyển tiền", description: note || `Chuyển đến ${toW.name}`, date: dateStr
     }).save({ session });
-
-    // Giao dịch Thu
     await new Transaction({
       userId: req.user.id, walletId: toWalletId, amount: amt,
       type: "INCOME", categoryName: "Nhận tiền", description: note || `Nhận từ ${fromW.name}`, date: dateStr
     }).save({ session });
-
-    // Cập nhật số dư
     fromW.balance -= amt;
     toW.balance += amt;
     await fromW.save({ session });
     await toW.save({ session });
-
     await session.commitTransaction();
     res.status(200).json({ message: "Chuyển tiền thành công" });
   } catch (error) {

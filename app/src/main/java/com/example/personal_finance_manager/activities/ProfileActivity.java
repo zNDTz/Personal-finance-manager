@@ -1,11 +1,14 @@
 package com.example.personal_finance_manager.activities;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -37,7 +40,7 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView tvChangeAvatar;
     private TextInputEditText etUsername, etEmail;
     private TextInputLayout tilUsername, tilEmail;
-    private Button btnUpdateProfile, btnLogout, btnManageWallets;
+    private Button btnUpdateProfile, btnLogout, btnManageWallets, btnChangePassword;
     private User currentUser;
     private TokenManager tokenManager;
     private ThemeManager themeManager;
@@ -65,6 +68,10 @@ public class ProfileActivity extends AppCompatActivity {
         btnManageWallets.setOnClickListener(v -> {
             startActivity(new Intent(ProfileActivity.this, WalletActivity.class));
         });
+        
+        if (btnChangePassword != null) {
+            btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
+        }
     }
 
     private void setupToolbar() {
@@ -86,7 +93,47 @@ public class ProfileActivity extends AppCompatActivity {
         btnUpdateProfile = findViewById(R.id.btnUpdateProfile);
         btnLogout = findViewById(R.id.btnLogout);
         btnManageWallets = findViewById(R.id.btnManageWallets);
+        btnChangePassword = findViewById(R.id.btnChangePassword);
         toggleTheme = findViewById(R.id.toggleTheme);
+    }
+
+    private void showChangePasswordDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_change_password, null);
+        TextInputEditText etCurrentPass = dialogView.findViewById(R.id.etCurrentPassword);
+        TextInputEditText etNewPass = dialogView.findViewById(R.id.etNewPassword);
+        TextInputEditText etConfirmPass = dialogView.findViewById(R.id.etConfirmPassword);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Đổi mật khẩu")
+                .setView(dialogView)
+                .setPositiveButton("Cập nhật", (dialog, which) -> {
+                    String currentP = etCurrentPass.getText().toString().trim();
+                    String newP = etNewPass.getText().toString().trim();
+                    String confirmP = etConfirmPass.getText().toString().trim();
+
+                    if (currentP.isEmpty() || newP.isEmpty()) {
+                        Toast.makeText(this, "Vui lòng nhập đầy đủ mật khẩu", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (!newP.equals(confirmP)) {
+                        Toast.makeText(this, "Mật khẩu xác nhận không khớp", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    userRepository.changePassword(currentP, newP, new UserRepository.DataCallback<String>() {
+                        @Override
+                        public void onSuccess(String message) {
+                            Toast.makeText(ProfileActivity.this, message, Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            Toast.makeText(ProfileActivity.this, message, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 
     private void setupThemeToggle() {

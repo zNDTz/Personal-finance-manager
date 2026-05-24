@@ -29,6 +29,10 @@ public interface ApiService {
     @PUT("api/auth/profile")
     Call<User> updateProfile(@Body User user);
 
+    // PHẢI LÀ POST VÀ ĐÚNG ĐƯỜNG DẪN
+    @POST("api/auth/change-password")
+    Call<Map<String, String>> changePassword(@Body Map<String, String> body);
+
     @GET("api/transactions")
     Call<List<Transaction>> getTransactions();
 
