@@ -31,6 +31,7 @@ import com.example.personal_finance_manager.activities.CategoryActivity;
 import com.example.personal_finance_manager.activities.EditTransactionActivity;
 import com.example.personal_finance_manager.activities.LoginActivity;
 import com.example.personal_finance_manager.activities.ProfileActivity;
+import com.example.personal_finance_manager.activities.SavingGoalActivity;
 import com.example.personal_finance_manager.activities.StatisticsActivity;
 import com.example.personal_finance_manager.activities.WalletActivity;
 import com.example.personal_finance_manager.adapters.TransactionAdapter;
@@ -431,6 +432,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.nav_statistics) {
                 startActivity(new Intent(this, StatisticsActivity.class));
+                return true;
+            } else if (id == R.id.nav_saving_goals) {
+                startActivity(new Intent(this, SavingGoalActivity.class));
                 return true;
             } else if (id == R.id.nav_categories) {
                 startActivity(new Intent(this, CategoryActivity.class));

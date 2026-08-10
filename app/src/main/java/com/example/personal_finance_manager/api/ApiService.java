@@ -1,6 +1,7 @@
 package com.example.personal_finance_manager.api;
 
 import com.example.personal_finance_manager.models.Category;
+import com.example.personal_finance_manager.models.SavingGoal;
 import com.example.personal_finance_manager.models.Transaction;
 import com.example.personal_finance_manager.models.User;
 import com.example.personal_finance_manager.models.Wallet;
@@ -70,4 +71,20 @@ public interface ApiService {
 
     @POST("api/wallets/transfer")
     Call<Map<String, String>> transferMoney(@Body Map<String, Object> body);
+
+    // --- SAVING GOALS ---
+    @GET("api/saving-goals")
+    Call<List<SavingGoal>> getSavingGoals();
+
+    @POST("api/saving-goals")
+    Call<SavingGoal> addSavingGoal(@Body SavingGoal goal);
+
+    @PUT("api/saving-goals/{id}")
+    Call<SavingGoal> updateSavingGoal(@Path("id") String id, @Body SavingGoal goal);
+
+    @DELETE("api/saving-goals/{id}")
+    Call<Void> deleteSavingGoal(@Path("id") String id);
+
+    @POST("api/saving-goals/{id}/add-money")
+    Call<SavingGoal> addMoneyToGoal(@Path("id") String goalId, @Body Map<String, Object> body);
 }

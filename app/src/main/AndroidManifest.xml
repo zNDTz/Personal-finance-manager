@@ -37,6 +37,7 @@
         <activity android:name=".activities.StatisticsActivity" />
         <activity android:name=".activities.ProfileActivity" />
         <activity android:name=".activities.WalletActivity" />
+        <activity android:name=".activities.SavingGoalActivity" />
 
     </application>
 
