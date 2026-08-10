@@ -29,13 +29,13 @@ import com.example.personal_finance_manager.models.User;
 import com.example.personal_finance_manager.models.Wallet;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -129,6 +129,8 @@ public class SavingGoalActivity extends AppCompatActivity {
                     goalList.clear();
                     goalList.addAll(response.body());
                     adapter.notifyDataSetChanged();
+                } else if (response.code() == 404) {
+                    Toast.makeText(SavingGoalActivity.this, "Lỗi 404: Server chưa hỗ trợ API mục tiêu", Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -196,7 +198,15 @@ public class SavingGoalActivity extends AppCompatActivity {
             }
 
             if (goal == null) {
-                addGoal(new SavingGoal(UUID.randomUUID().toString(), name, target, 0, deadline, null));
+                // Tạo một Map để gửi lên Server thay vì đối tượng SavingGoal
+                // Điều này giúp loại bỏ trường 'id' để server tự tạo ID
+                SavingGoal newGoal = new SavingGoal();
+                newGoal.setId(""); // Để trống ID để Server tự tạo
+                newGoal.setName(name);
+                newGoal.setTargetAmount(target);
+                newGoal.setCurrentAmount(0);
+                newGoal.setDeadline(deadline);
+                addGoal(newGoal);
             } else {
                 goal.setName(name);
                 goal.setTargetAmount(target);
@@ -215,7 +225,6 @@ public class SavingGoalActivity extends AppCompatActivity {
         Spinner spinnerWallet = view.findViewById(R.id.spinnerWallet);
         EditText etAmount = view.findViewById(R.id.etAmount);
 
-        // Load wallets
         ApiClient.getApiService(this).getWallets().enqueue(new Callback<List<Wallet>>() {
             @Override
             public void onResponse(Call<List<Wallet>> call, Response<List<Wallet>> response) {
@@ -253,15 +262,24 @@ public class SavingGoalActivity extends AppCompatActivity {
             public void onResponse(Call<SavingGoal> call, Response<SavingGoal> response) {
                 if (response.isSuccessful()) {
                     loadSavingGoals();
-                    Toast.makeText(SavingGoalActivity.this, "Đã thêm mục tiêu", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SavingGoalActivity.this, "Đã thêm mục tiêu thành công!", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(SavingGoalActivity.this, "Lỗi khi thêm mục tiêu", Toast.LENGTH_SHORT).show();
+                    String errorMsg = "Lỗi " + response.code();
+                    if (response.code() == 404) {
+                        errorMsg += ": Đường dẫn API không tồn tại trên Server";
+                    }
+                    try {
+                        if (response.errorBody() != null) {
+                            errorMsg += " - " + response.errorBody().string();
+                        }
+                    } catch (IOException e) { e.printStackTrace(); }
+                    Toast.makeText(SavingGoalActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<SavingGoal> call, Throwable t) {
-                Toast.makeText(SavingGoalActivity.this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SavingGoalActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -274,7 +292,7 @@ public class SavingGoalActivity extends AppCompatActivity {
                     loadSavingGoals();
                     Toast.makeText(SavingGoalActivity.this, "Đã cập nhật mục tiêu", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(SavingGoalActivity.this, "Lỗi khi cập nhật mục tiêu", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SavingGoalActivity.this, "Lỗi khi cập nhật mục tiêu: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -312,7 +330,7 @@ public class SavingGoalActivity extends AppCompatActivity {
                     loadSavingGoals();
                     Toast.makeText(SavingGoalActivity.this, "Đã gửi tiết kiệm thành công", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(SavingGoalActivity.this, "Lỗi: " + response.message(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SavingGoalActivity.this, "Lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 

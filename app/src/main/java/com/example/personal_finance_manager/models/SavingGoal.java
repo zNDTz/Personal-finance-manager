@@ -27,6 +27,9 @@ public class SavingGoal {
     @SerializedName("userId")
     private String userId;
 
+    public SavingGoal() {
+    }
+
     public SavingGoal(@NonNull String id, String name, double targetAmount, double currentAmount, String deadline, String userId) {
         this.id = id;
         this.name = name;
