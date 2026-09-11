@@ -77,7 +77,7 @@ public interface ApiService {
     Call<List<SavingGoal>> getSavingGoals();
 
     @POST("api/saving-goals")
-    Call<SavingGoal> addSavingGoal(@Body SavingGoal goal);
+    Call<SavingGoal> addSavingGoal(@Body Map<String, Object> goal);
 
     @PUT("api/saving-goals/{id}")
     Call<SavingGoal> updateSavingGoal(@Path("id") String id, @Body SavingGoal goal);

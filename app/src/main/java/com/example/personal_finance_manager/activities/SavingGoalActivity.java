@@ -198,15 +198,14 @@ public class SavingGoalActivity extends AppCompatActivity {
             }
 
             if (goal == null) {
-                // Tạo một Map để gửi lên Server thay vì đối tượng SavingGoal
+                // Sử dụng Map để gửi lên Server thay vì đối tượng SavingGoal
                 // Điều này giúp loại bỏ trường 'id' để server tự tạo ID
-                SavingGoal newGoal = new SavingGoal();
-                newGoal.setId(""); // Để trống ID để Server tự tạo
-                newGoal.setName(name);
-                newGoal.setTargetAmount(target);
-                newGoal.setCurrentAmount(0);
-                newGoal.setDeadline(deadline);
-                addGoal(newGoal);
+                Map<String, Object> goalData = new HashMap<>();
+                goalData.put("name", name);
+                goalData.put("targetAmount", target);
+                goalData.put("currentAmount", 0.0);
+                goalData.put("deadline", deadline);
+                addGoal(goalData);
             } else {
                 goal.setName(name);
                 goal.setTargetAmount(target);
@@ -256,8 +255,8 @@ public class SavingGoalActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void addGoal(SavingGoal goal) {
-        ApiClient.getApiService(this).addSavingGoal(goal).enqueue(new Callback<SavingGoal>() {
+    private void addGoal(Map<String, Object> goalData) {
+        ApiClient.getApiService(this).addSavingGoal(goalData).enqueue(new Callback<SavingGoal>() {
             @Override
             public void onResponse(Call<SavingGoal> call, Response<SavingGoal> response) {
                 if (response.isSuccessful()) {
