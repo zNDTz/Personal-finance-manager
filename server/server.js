@@ -57,6 +57,16 @@ const TransactionSchema = new mongoose.Schema({
 TransactionSchema.set("toJSON", { transform: transformRes });
 const Transaction = mongoose.model("Transaction", TransactionSchema);
 
+const SavingGoalSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  targetAmount: { type: Number, required: true },
+  currentAmount: { type: Number, default: 0 },
+  deadline: { type: String, required: true }, // yyyy-MM-dd
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+});
+SavingGoalSchema.set("toJSON", { transform: transformRes });
+const SavingGoal = mongoose.model("SavingGoal", SavingGoalSchema);
+
 app.use(cors());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
@@ -259,6 +269,61 @@ app.post("/api/wallets/transfer", authenticateToken, async (req, res) => {
     await toW.save({ session });
     await session.commitTransaction();
     res.status(200).json({ message: "Chuyển tiền thành công" });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(400).json({ message: error.message });
+  } finally {
+    session.endSession();
+  }
+});
+
+// --- SAVING GOALS API ---
+app.get("/api/saving-goals", authenticateToken, async (req, res) => {
+  res.json(await SavingGoal.find({ userId: req.user.id }));
+});
+
+app.post("/api/saving-goals", authenticateToken, async (req, res) => {
+  const goal = new SavingGoal({ ...req.body, userId: req.user.id });
+  await goal.save();
+  res.status(201).json(goal);
+});
+
+app.put("/api/saving-goals/:id", authenticateToken, async (req, res) => {
+  const goal = await SavingGoal.findOneAndUpdate({ _id: req.params.id, userId: req.user.id }, req.body, { new: true });
+  res.json(goal);
+});
+
+app.delete("/api/saving-goals/:id", authenticateToken, async (req, res) => {
+  await SavingGoal.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+  res.json({ message: "Xóa thành công" });
+});
+
+app.post("/api/saving-goals/:id/add-money", authenticateToken, async (req, res) => {
+  const { walletId, amount } = req.body;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const goal = await SavingGoal.findOne({ _id: req.params.id, userId: req.user.id }).session(session);
+    const wallet = await Wallet.findOne({ _id: walletId, userId: req.user.id }).session(session);
+    if (!goal || !wallet) throw new Error("Không tìm thấy mục tiêu hoặc ví");
+
+    const amt = parseFloat(amount);
+    if (wallet.balance < amt) throw new Error("Số dư ví không đủ");
+
+    const dateStr = new Date().toISOString().split("T")[0];
+    await new Transaction({
+      userId: req.user.id, walletId: walletId, amount: amt,
+      type: "EXPENSE", categoryName: "Tiết kiệm", description: `Tích lũy cho mục tiêu: ${goal.name}`, date: dateStr
+    }).save({ session });
+
+    wallet.balance -= amt;
+    goal.currentAmount += amt;
+
+    await wallet.save({ session });
+    await goal.save({ session });
+
+    await session.commitTransaction();
+    res.status(200).json(goal);
   } catch (error) {
     await session.abortTransaction();
     res.status(400).json({ message: error.message });
