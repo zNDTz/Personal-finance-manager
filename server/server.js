@@ -247,33 +247,58 @@ app.delete("/api/transactions/:id", authenticateToken, async (req, res) => {
 
 app.post("/api/wallets/transfer", authenticateToken, async (req, res) => {
   const { fromWalletId, toWalletId, amount, note } = req.body;
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const fromW = await Wallet.findOne({ _id: fromWalletId, userId: req.user.id }).session(session);
-    const toW = await Wallet.findOne({ _id: toWalletId, userId: req.user.id }).session(session);
-    if (!fromW || !toW) throw new Error("Không tìm thấy ví");
+    const fromW = await Wallet.findOne({ _id: fromWalletId, userId: req.user.id });
+    const toW = await Wallet.findOne({ _id: toWalletId, userId: req.user.id });
+    if (!fromW || !toW) return res.status(400).json({ message: "Không tìm thấy ví" });
+
     const amt = parseFloat(amount);
-    const dateStr = new Date().toISOString().split("T")[0];
-    await new Transaction({
-      userId: req.user.id, walletId: fromWalletId, amount: amt,
-      type: "EXPENSE", categoryName: "Chuyển tiền", description: note || `Chuyển đến ${toW.name}`, date: dateStr
-    }).save({ session });
-    await new Transaction({
-      userId: req.user.id, walletId: toWalletId, amount: amt,
-      type: "INCOME", categoryName: "Nhận tiền", description: note || `Nhận từ ${fromW.name}`, date: dateStr
-    }).save({ session });
-    fromW.balance -= amt;
-    toW.balance += amt;
-    await fromW.save({ session });
-    await toW.save({ session });
-    await session.commitTransaction();
-    res.status(200).json({ message: "Chuyển tiền thành công" });
+    if (isNaN(amt) || amt <= 0) return res.status(400).json({ message: "Số tiền không hợp lệ" });
+    if (fromW.balance < amt) return res.status(400).json({ message: "Số dư ví gửi không đủ" });
+
+    let session = null;
+    try {
+      session = await mongoose.startSession();
+      session.startTransaction();
+
+      const dateStr = new Date().toISOString().split("T")[0];
+      await new Transaction({
+        userId: req.user.id, walletId: fromWalletId, amount: amt,
+        type: "EXPENSE", categoryName: "Chuyển tiền", description: note || `Chuyển đến ${toW.name}`, date: dateStr
+      }).save({ session });
+      await new Transaction({
+        userId: req.user.id, walletId: toWalletId, amount: amt,
+        type: "INCOME", categoryName: "Nhận tiền", description: note || `Nhận từ ${fromW.name}`, date: dateStr
+      }).save({ session });
+      fromW.balance -= amt;
+      toW.balance += amt;
+      await fromW.save({ session });
+      await toW.save({ session });
+      await session.commitTransaction();
+      session.endSession();
+      return res.status(200).json({ message: "Chuyển tiền thành công" });
+    } catch (txError) {
+      if (session) {
+        try { await session.abortTransaction(); } catch (e) {}
+        session.endSession();
+      }
+      const dateStr = new Date().toISOString().split("T")[0];
+      await new Transaction({
+        userId: req.user.id, walletId: fromWalletId, amount: amt,
+        type: "EXPENSE", categoryName: "Chuyển tiền", description: note || `Chuyển đến ${toW.name}`, date: dateStr
+      }).save();
+      await new Transaction({
+        userId: req.user.id, walletId: toWalletId, amount: amt,
+        type: "INCOME", categoryName: "Nhận tiền", description: note || `Nhận từ ${fromW.name}`, date: dateStr
+      }).save();
+      fromW.balance -= amt;
+      toW.balance += amt;
+      await fromW.save();
+      await toW.save();
+      return res.status(200).json({ message: "Chuyển tiền thành công" });
+    }
   } catch (error) {
-    await session.abortTransaction();
-    res.status(400).json({ message: error.message });
-  } finally {
-    session.endSession();
+    res.status(500).json({ message: error.message || "Lỗi server khi chuyển tiền" });
   }
 });
 
@@ -300,35 +325,56 @@ app.delete("/api/saving-goals/:id", authenticateToken, async (req, res) => {
 
 app.post("/api/saving-goals/:id/add-money", authenticateToken, async (req, res) => {
   const { walletId, amount } = req.body;
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const goal = await SavingGoal.findOne({ _id: req.params.id, userId: req.user.id }).session(session);
-    const wallet = await Wallet.findOne({ _id: walletId, userId: req.user.id }).session(session);
-    if (!goal || !wallet) throw new Error("Không tìm thấy mục tiêu hoặc ví");
+    const goal = await SavingGoal.findOne({ _id: req.params.id, userId: req.user.id });
+    const wallet = await Wallet.findOne({ _id: walletId, userId: req.user.id });
+    if (!goal || !wallet) return res.status(400).json({ message: "Không tìm thấy mục tiêu hoặc ví" });
 
     const amt = parseFloat(amount);
-    if (wallet.balance < amt) throw new Error("Số dư ví không đủ");
+    if (isNaN(amt) || amt <= 0) return res.status(400).json({ message: "Số tiền không hợp lệ" });
+    if (wallet.balance < amt) return res.status(400).json({ message: "Số dư ví không đủ" });
 
-    const dateStr = new Date().toISOString().split("T")[0];
-    await new Transaction({
-      userId: req.user.id, walletId: walletId, amount: amt,
-      type: "EXPENSE", categoryName: "Tiết kiệm", description: `Tích lũy cho mục tiêu: ${goal.name}`, date: dateStr
-    }).save({ session });
+    let session = null;
+    try {
+      session = await mongoose.startSession();
+      session.startTransaction();
 
-    wallet.balance -= amt;
-    goal.currentAmount += amt;
+      const dateStr = new Date().toISOString().split("T")[0];
+      await new Transaction({
+        userId: req.user.id, walletId: walletId, amount: amt,
+        type: "EXPENSE", categoryName: "Tiết kiệm", description: `Tích lũy cho mục tiêu: ${goal.name}`, date: dateStr
+      }).save({ session });
 
-    await wallet.save({ session });
-    await goal.save({ session });
+      wallet.balance -= amt;
+      goal.currentAmount += amt;
 
-    await session.commitTransaction();
-    res.status(200).json(goal);
+      await wallet.save({ session });
+      await goal.save({ session });
+
+      await session.commitTransaction();
+      session.endSession();
+      return res.status(200).json(goal);
+    } catch (txError) {
+      if (session) {
+        try { await session.abortTransaction(); } catch (e) {}
+        session.endSession();
+      }
+      const dateStr = new Date().toISOString().split("T")[0];
+      await new Transaction({
+        userId: req.user.id, walletId: walletId, amount: amt,
+        type: "EXPENSE", categoryName: "Tiết kiệm", description: `Tích lũy cho mục tiêu: ${goal.name}`, date: dateStr
+      }).save();
+
+      wallet.balance -= amt;
+      goal.currentAmount += amt;
+
+      await wallet.save();
+      await goal.save();
+
+      return res.status(200).json(goal);
+    }
   } catch (error) {
-    await session.abortTransaction();
-    res.status(400).json({ message: error.message });
-  } finally {
-    session.endSession();
+    res.status(500).json({ message: error.message || "Lỗi server khi gửi tiết kiệm" });
   }
 });
 

@@ -198,7 +198,7 @@ public class SavingGoalActivity extends AppCompatActivity {
             }
 
             if (goal == null) {
-                // Sử dụng Map để gửi lên Server thay vì đối tượng SavingGoal
+                // Sử dụng Map để gửi lên Server thay vì sđối tượng SavingGoal
                 // Điều này giúp loại bỏ trường 'id' để server tự tạo ID
                 Map<String, Object> goalData = new HashMap<>();
                 goalData.put("name", name);
@@ -329,7 +329,19 @@ public class SavingGoalActivity extends AppCompatActivity {
                     loadSavingGoals();
                     Toast.makeText(SavingGoalActivity.this, "Đã gửi tiết kiệm thành công", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(SavingGoalActivity.this, "Lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
+                    String errorMsg = "Lỗi: " + response.code();
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorJson = response.errorBody().string();
+                            org.json.JSONObject obj = new org.json.JSONObject(errorJson);
+                            if (obj.has("message")) {
+                                errorMsg = obj.getString("message");
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Toast.makeText(SavingGoalActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
 
